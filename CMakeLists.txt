@@ -2,14 +2,12 @@
 cmake_minimum_required(VERSION 3.11)
 project(disk-management VERSION 1.0.0 LANGUAGES CXX)
 
-# Include FetchContent module
-include(FetchContent)
-
 # Create disk-management library
 add_library(disk-management STATIC
-    src/details.cpp
+    src/disk.cpp
     src/secure-erase.cpp
     src/gutmann-method.cpp
+    src/disk-management.cpp
 )
 
 # Set include directories for this library

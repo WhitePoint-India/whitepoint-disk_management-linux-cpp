@@ -1,8 +1,8 @@
 
 #include <iostream>
-#include <disk-management/delete-methods/gutmann-method.h>
+#include "internal/gutmann-method.h"
 
-void GutmannMethod::deleteDisk(DiskManagement::Disk disk) {
-    
-    std::cout << "Gutmann method erase...." << disk.path <<std::endl;
+void DiskManagement::Internal::GutmannMethod::deleteDisk(DiskManagement::Disk& disk) const {
+    std::cout << "Gutmann method erasing disk: " << disk.model 
+              << " at " << disk.path << std::endl;
 }

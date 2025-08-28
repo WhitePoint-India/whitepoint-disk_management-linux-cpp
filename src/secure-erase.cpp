@@ -1,8 +1,8 @@
 
 #include <iostream>
-#include <disk-management/delete-methods/secure-erase.h>
+#include "internal/secure-erase.h"
 
-void SecureErase::deleteDisk(DiskManagement::Disk disk) {
-    
-    std::cout << "Secure Erase...." << disk.path << std::endl;
+void DiskManagement::Internal::SecureErase::deleteDisk(DiskManagement::Disk& disk) const {
+    std::cout << "Secure erasing disk: " << disk.model 
+              << " at " << disk.path << std::endl;
 }
