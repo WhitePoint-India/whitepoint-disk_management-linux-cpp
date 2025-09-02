@@ -2,46 +2,47 @@
 cmake_minimum_required(VERSION 3.11)
 project(disk-management VERSION 1.0.0 LANGUAGES CXX)
 
-# Include FetchContent for downloading lshw source
-include(FetchContent)
+# =============================================================================
+# lshw External Dependency (Git Submodule)
+# =============================================================================
 
-# Download lshw source code
-FetchContent_Declare(
-    lshw_source
-    GIT_REPOSITORY https://github.com/lyonel/lshw.git
-    GIT_TAG master
-)
+# Check if lshw submodule is properly initialized
+set(LSHW_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/external/lshw)
+if(NOT EXISTS ${LSHW_ROOT}/src/core)
+    message(FATAL_ERROR 
+        "lshw submodule not found. Please run:\n"
+        "  git submodule update --init --recursive")
+endif()
 
-# Make lshw source available
-FetchContent_Populate(lshw_source)
-
-# Get all source files from lshw core library
+# Collect lshw source files
 file(GLOB LSHW_SOURCES 
-    ${lshw_source_SOURCE_DIR}/src/core/*.cc
-    ${lshw_source_SOURCE_DIR}/src/core/*.c
+    ${LSHW_ROOT}/src/core/*.cc
+    ${LSHW_ROOT}/src/core/*.c
 )
 
-# Remove files we don't need or that have external dependencies
+# Remove files with external dependencies that we don't need
 list(REMOVE_ITEM LSHW_SOURCES 
-    ${lshw_source_SOURCE_DIR}/src/core/db.cc  # Requires sqlite3
-    ${lshw_source_SOURCE_DIR}/src/core/dump.cc # GUI related
+    ${LSHW_ROOT}/src/core/db.cc      # Requires sqlite3
+    ${LSHW_ROOT}/src/core/dump.cc    # GUI-related functionality
 )
 
-# Create lshw library from source files
+# Build lshw as a static library
 add_library(lshw STATIC ${LSHW_SOURCES})
 
-# Set compile definitions for lshw
 target_compile_definitions(lshw PRIVATE
     VERSION="B.02.19"
     DATADIR="/usr/share"
 )
 
-# Set include directories for lshw
 target_include_directories(lshw PUBLIC
-    ${lshw_source_SOURCE_DIR}/src/core
+    ${LSHW_ROOT}/src/core
 )
 
-# Create disk-management library
+# =============================================================================
+# Disk Management Library
+# =============================================================================
+
+# Create the main disk-management library
 add_library(disk-management STATIC
     src/disk.cpp
     src/secure-erase.cpp
@@ -49,16 +50,14 @@ add_library(disk-management STATIC
     src/disk-management.cpp
 )
 
-# Set include directories for this library
-# BUILD_INTERFACE: Used when building the library
-# INSTALL_INTERFACE: Used when the library is installed
+# Configure include directories
 target_include_directories(disk-management PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
 
-# Set C++ standard (requires C++20 for std::format)
+# Set C++ standard requirement
 target_compile_features(disk-management PUBLIC cxx_std_20)
 
-# Link lshw library
+# Link external dependencies
 target_link_libraries(disk-management PUBLIC lshw)

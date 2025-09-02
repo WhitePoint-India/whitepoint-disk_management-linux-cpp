@@ -1,0 +1,3 @@
+[submodule "external/lshw"]
+	path = external/lshw
+	url = https://github.com/lyonel/lshw.git
