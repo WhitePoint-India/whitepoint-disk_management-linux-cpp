@@ -28,7 +28,7 @@ namespace DiskManagement {
         std::string path;
         std::string description;
         unsigned long long size;
-        unsigned long long sectorCount;
+        unsigned long long sectorSize;
         DiskState state;
 
         Disk(
@@ -37,9 +37,11 @@ namespace DiskManagement {
             const std::string& path,
             const std::string& description,
             unsigned long long size,
-            unsigned long long sectorCount,
+            unsigned long long sectorSize,
             DiskState state
         );
+
+        unsigned long long getSectorCount();
         
         bool isFrozen() const;
         void unfreeze();

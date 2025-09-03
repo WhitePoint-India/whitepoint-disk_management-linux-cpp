@@ -7,15 +7,19 @@ DiskManagement::Disk::Disk(
     const std::string& path,
     const std::string& description,
     unsigned long long size,
-    unsigned long long sectorCount,
+    unsigned long long sectorSize,
     DiskState state
 ) : serial(serial), 
     model(model), 
     path(path), 
     description(description), 
     size(size), 
-    sectorCount(sectorCount),
+    sectorSize(sectorSize),
     state(state) {
+}
+
+unsigned long long DiskManagement::Disk::getSectorCount() {
+    return size / sectorSize;
 }
 
 bool DiskManagement::Disk::isFrozen() const {

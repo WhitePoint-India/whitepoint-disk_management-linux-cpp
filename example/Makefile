@@ -56,7 +56,7 @@ $(BUILD_DIR)/Makefile:
 run: build
 	@echo "$(BLUE)Running application...$(RESET)"
 	@echo "$(YELLOW)----------------------------------------$(RESET)"
-	@$(EXECUTABLE)
+	@sudo $(EXECUTABLE)
 	@echo "$(YELLOW)----------------------------------------$(RESET)"
 	@echo "$(GREEN)Application finished!$(RESET)"
 

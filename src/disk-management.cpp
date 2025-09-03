@@ -5,6 +5,12 @@
 #include "main.h"
 #include <functional>
 #include <map>
+#include <string>
+#include <algorithm>
+#include <vector>
+#include <exception>
+
+#include <iostream>
 
 // Provide a stub for the status function used by lshw
 // In a real implementation, this could show progress to the user
@@ -20,117 +26,316 @@ namespace {
 const DiskManagement::DiskDeleteMethod& DiskManagement::SECURE_ERASE_METHOD = secureEraseInstance;
 const DiskManagement::DiskDeleteMethod& DiskManagement::GUTMANN_METHOD = gutmannMethodInstance;
 
+typedef enum _DiskType {
+    NVMe,
+    USB,
+    SATA,
+    PATA,
+    MMC,
+    VirtIO,
+    VirtXen,
+    not_a_disk,
+    indeterminate,
+} DiskType;
+
+DiskType diskType(hwNode* disk) {
+    std::string logicalName = disk->getLogicalName();
+    // Filter out non-block devices
+    if (logicalName.empty()) return DiskType::indeterminate;
+    // Filter out hwmon devices (hardware monitoring sensors)
+    if (logicalName.find("hwmon") != std::string::npos) return DiskType::not_a_disk;
+    // Filter out NVMe generic character devices (ng*)
+    if (logicalName.find("/dev/ng") == 0) return DiskType::not_a_disk;
+    // Filter out loop devices (virtual block devices)
+    if (logicalName.find("/dev/loop") == 0) return DiskType::not_a_disk;
+    // NVMe block devices: /dev/nvme*
+    if (logicalName.find("/dev/nvme") == 0) {
+        if (logicalName.find("n1") != std::string::npos) {
+            return DiskType::NVMe;
+        }
+        else {
+            return DiskType::not_a_disk;
+        }
+    }
+    // SATA/SCSI devices: /dev/sd*
+    if (logicalName.find("/dev/sd") == 0) {
+        std::string busInfo = disk->getBusInfo();
+        if (busInfo.find("usb") != std::string::npos) {
+            return DiskType::USB;
+        }
+        else {
+            return DiskType::SATA;
+        }
+    }
+    // IDE/PATA devices: /dev/hd*
+    if (logicalName.find("/dev/hd") == 0) return DiskType::PATA;
+    // MMC/SD cards: /dev/mmcblk*
+    if (logicalName.find("/dev/mmcblk") == 0) return DiskType::MMC;
+    // Virtual devices: /dev/vd* (virtio)
+    if (logicalName.find("/dev/vd") == 0) return DiskType::VirtIO;
+    // Xen virtual devices: /dev/xvd*
+    if (logicalName.find("/dev/xvd") == 0) return DiskType::VirtXen;
+    // Unknown
+    return DiskType::indeterminate;
+}
+
+void fetchDisks(hwNode* node, hwNode* parent, std::vector<DiskManagement::Disk>& disks) {
+
+    if (!node) { return; }
+
+    if (node->getClass() == hw::disk) {
+
+        DiskType type = diskType(node);
+        
+        // Skip non-disk devices
+        if (type == DiskType::not_a_disk) { return; }
+        
+        // Get disk information from the appropriate node (parent for NVMe, node for others)
+        std::string serial;
+        std::string vendor;
+        std::string product;
+        std::string logicalName = node->getLogicalName();
+        std::string description;
+        std::string busInfo;
+        unsigned long long size = 0;
+        unsigned long long sectorCount = 0;
+        unsigned long long sectorSize = 512; // Default sector size
+        
+        // Check for duplicates
+        for (const auto& existingDisk : disks) {
+            if (existingDisk.path == logicalName) {
+                return; // Already processed this disk
+            }
+        }
+        
+        switch (type) {
+            case NVMe: {
+                // For NVMe, get serial/vendor/product from parent (controller)
+                // but get size/capacity from the node itself (namespace/disk)
+                if (parent) {
+                    serial = parent->getSerial();
+                    vendor = parent->getVendor();
+                    product = parent->getProduct();
+                }
+                // Get size info from the disk node itself
+                size = node->getSize();
+                sectorCount = node->getCapacity();
+                description = node->getDescription();
+                
+                // Get logical sector size from configuration
+                std::string sectorSizeStr = node->getConfig("logicalsectorsize");
+                std::cout << sectorSizeStr << "CHECK" << std::endl;
+                if (sectorSizeStr.empty()) {
+                    std::cout << "1" << std::endl;
+                    sectorSizeStr = node->getConfig("sectorsize");
+                }
+                if (sectorSizeStr.empty()) {
+                    std::cout << "2" << std::endl;
+                    sectorSizeStr = node->getConfig("logicalblocksize");  
+                }
+                
+                if (!sectorSizeStr.empty()) {
+                    std::cout << "Fetched sector size from config: '" << sectorSizeStr << "'" << std::endl;
+                    try {
+                        sectorSize = std::stoull(sectorSizeStr);
+                    } catch (...) {
+                        sectorSize = 512;
+                        std::cout << "Failed to parse, using default: 512 bytes" << std::endl;
+                    }
+                } else {
+                    // If no config, default to 512
+                    std::cout << "No sector size config found, using default: 512 bytes" << std::endl;
+                    sectorSize = 512;
+                }
+                
+                std::cout << logicalName << " : NVMe SSD";
+                break;
+            }
+            case USB: {
+                serial = node->getSerial();
+                vendor = node->getVendor();
+                product = node->getProduct();
+                description = node->getDescription();
+                size = node->getSize();
+                sectorCount = node->getCapacity();
+                
+                // Get logical sector size from configuration
+                std::vector<std::string> sectorSizeConfig = node->getConfigValues("logicalsectorsize");
+                if (!sectorSizeConfig.empty()) {
+                    try {
+                        sectorSize = std::stoull(sectorSizeConfig[0]);
+                    } catch (...) {
+                        sectorSize = 512; // Fallback to default
+                    }
+                }
+                
+                std::cout << logicalName << " : USB Storage";
+                break;
+            }
+            case SATA: {
+                serial = node->getSerial();
+                vendor = node->getVendor();
+                product = node->getProduct();
+                description = node->getDescription();
+                size = node->getSize();
+                sectorCount = node->getCapacity();
+                
+                // Get logical sector size from configuration
+                std::vector<std::string> sectorSizeConfig = node->getConfigValues("logicalsectorsize");
+                if (!sectorSizeConfig.empty()) {
+                    try {
+                        sectorSize = std::stoull(sectorSizeConfig[0]);
+                    } catch (...) {
+                        sectorSize = 512; // Fallback to default
+                    }
+                }
+                
+                std::cout << logicalName << " : SATA/SCSI Disk";
+                break;
+            }
+            case PATA: {
+                serial = node->getSerial();
+                vendor = node->getVendor();
+                product = node->getProduct();
+                description = node->getDescription();
+                size = node->getSize();
+                sectorCount = node->getCapacity();
+                
+                // Get logical sector size from configuration
+                std::vector<std::string> sectorSizeConfig = node->getConfigValues("logicalsectorsize");
+                if (!sectorSizeConfig.empty()) {
+                    try {
+                        sectorSize = std::stoull(sectorSizeConfig[0]);
+                    } catch (...) {
+                        sectorSize = 512; // Fallback to default
+                    }
+                }
+                
+                std::cout << logicalName << " : IDE/PATA Disk";
+                break;
+            }
+            case MMC: {
+                serial = node->getSerial();
+                vendor = node->getVendor();
+                product = node->getProduct();
+                description = node->getDescription();
+                size = node->getSize();
+                sectorCount = node->getCapacity();
+                
+                // Get logical sector size from configuration
+                std::vector<std::string> sectorSizeConfig = node->getConfigValues("logicalsectorsize");
+                if (!sectorSizeConfig.empty()) {
+                    try {
+                        sectorSize = std::stoull(sectorSizeConfig[0]);
+                    } catch (...) {
+                        sectorSize = 512; // Fallback to default
+                    }
+                }
+                
+                std::cout << logicalName << " : MMC/SD Card";
+                break;
+            }
+            case VirtIO: {
+                serial = node->getSerial();
+                vendor = node->getVendor();
+                product = node->getProduct();
+                description = node->getDescription();
+                size = node->getSize();
+                sectorCount = node->getCapacity();
+                
+                // Get logical sector size from configuration
+                std::vector<std::string> sectorSizeConfig = node->getConfigValues("logicalsectorsize");
+                if (!sectorSizeConfig.empty()) {
+                    try {
+                        sectorSize = std::stoull(sectorSizeConfig[0]);
+                    } catch (...) {
+                        sectorSize = 512; // Fallback to default
+                    }
+                }
+                
+                std::cout << logicalName << " : Virtual Disk (VirtIO)";
+                break;
+            }
+            case VirtXen: {
+                serial = node->getSerial();
+                vendor = node->getVendor();
+                product = node->getProduct();
+                description = node->getDescription();
+                size = node->getSize();
+                sectorCount = node->getCapacity();
+                
+                // Get logical sector size from configuration
+                std::vector<std::string> sectorSizeConfig = node->getConfigValues("logicalsectorsize");
+                if (!sectorSizeConfig.empty()) {
+                    try {
+                        sectorSize = std::stoull(sectorSizeConfig[0]);
+                    } catch (...) {
+                        sectorSize = 512; // Fallback to default
+                    }
+                }
+                
+                std::cout << logicalName << " : Virtual Disk (Xen)";
+                break;
+            }
+            case indeterminate:
+            default: {
+                serial = node->getSerial();
+                vendor = node->getVendor();
+                product = node->getProduct();
+                description = node->getDescription();
+                size = node->getSize();
+                sectorCount = node->getCapacity();
+                
+                // Get logical sector size from configuration
+                std::vector<std::string> sectorSizeConfig = node->getConfigValues("logicalsectorsize");
+                if (!sectorSizeConfig.empty()) {
+                    try {
+                        sectorSize = std::stoull(sectorSizeConfig[0]);
+                    } catch (...) {
+                        sectorSize = 512; // Fallback to default
+                    }
+                }
+                
+                std::cout << logicalName << " : Unknown Disk Type";
+                break;
+            }
+        }
+        
+        // Create and add disk info
+        DiskManagement::Disk diskInfo(
+            serial,
+            product,
+            logicalName,
+            description,
+            size,
+            sectorSize,
+            DiskManagement::DiskState::READY
+        );
+        
+        disks.push_back(diskInfo);
+    }
+    else {
+        // Recursively check children
+        for (unsigned int i = 0; i < node->countChildren(); i++) {
+            hwNode* child = node->getChild(i);
+            fetchDisks(child, node, disks);
+        }
+    }
+}
+
 std::vector<DiskManagement::Disk> DiskManagement::fetchDisks() {
-    std::vector<Disk> disks;
-    
+
     // Create a hwNode to scan the system
     hwNode system("computer");
     
     // Scan the system for hardware
     scan_system(system);
-    
-    // First pass: collect NVMe controller information
-    std::map<std::string, std::string> nvmeSerials; // Maps logical name patterns to serials
-    std::map<std::string, std::string> nvmeModels;  // Maps logical name patterns to models
-    
-    std::function<void(hwNode*)> findNVMeControllers = [&](hwNode* node) {
-        // Look for NVMe storage controllers
-        if (node->getClass() == hw::storage) {
-            std::string logicalName = node->getLogicalName();
-            std::string serial = node->getSerial();
-            std::string model = node->getProduct();
-            
-            // If this is an NVMe controller with serial/model info
-            if (!logicalName.empty() && logicalName.find("/dev/nvme") != std::string::npos) {
-                // Store the serial and model for this controller
-                // Extract the nvme number (e.g., nvme0 from /dev/nvme0)
-                size_t pos = logicalName.find("nvme");
-                if (pos != std::string::npos) {
-                    std::string nvmeId = logicalName.substr(pos);
-                    if (!serial.empty()) {
-                        nvmeSerials[nvmeId] = serial;
-                    }
-                    if (!model.empty()) {
-                        nvmeModels[nvmeId] = model;
-                    }
-                }
-            }
-        }
-        
-        // Recursively check children
-        for (unsigned int i = 0; i < node->countChildren(); i++) {
-            hwNode* child = node->getChild(i);
-            if (child) {
-                findNVMeControllers(child);
-            }
-        }
-    };
-    
-    // Second pass: find disk nodes and match with controller info
-    std::function<void(hwNode*)> findDisks = [&](hwNode* node) {
-        if (node->getClass() == hw::disk) {
-            // Extract disk information
-            std::string serial = node->getSerial();
-            std::string model = node->getProduct();
-            std::string path = node->getLogicalName();
-            std::string description = node->getDescription();
-            unsigned long long size = node->getSize();
-            
-            // For NVMe disks, try to get serial/model from the controller
-            if (path.find("/dev/nvme") != std::string::npos) {
-                // Extract the controller ID (e.g., nvme0 from /dev/nvme0n1)
-                size_t pos = path.find("nvme");
-                if (pos != std::string::npos) {
-                    size_t endPos = path.find("n", pos + 4); // Find 'n' after 'nvme'
-                    if (endPos != std::string::npos) {
-                        std::string nvmeId = path.substr(pos, endPos - pos);
-                        
-                        // Use controller serial/model if disk doesn't have them
-                        if (serial.empty() && nvmeSerials.find(nvmeId) != nvmeSerials.end()) {
-                            serial = nvmeSerials[nvmeId];
-                        }
-                        if (model.empty() && nvmeModels.find(nvmeId) != nvmeModels.end()) {
-                            model = nvmeModels[nvmeId];
-                        }
-                    }
-                }
-            }
-            
-            // Calculate sector count (assuming 512 byte sectors if not specified)
-            unsigned long long sectorCount = size > 0 ? size / 512 : 0;
-            
-            // Default to READY state (would need additional logic to detect FROZEN state)
-            DiskState state = DiskState::READY;
-            
-            // Only add disks with valid path and skip control devices
-            if (!path.empty() && path.find("/dev/") != std::string::npos && 
-                path.find("ng") == std::string::npos) {  // Skip /dev/ng0n1 type devices
-                disks.emplace_back(
-                    serial.empty() ? "N/A" : serial,
-                    model.empty() ? node->getVendor() : model,
-                    path,
-                    description.empty() ? "Disk" : description,
-                    size,
-                    sectorCount,
-                    state
-                );
-            }
-        }
-        
-        // Recursively check children
-        for (unsigned int i = 0; i < node->countChildren(); i++) {
-            hwNode* child = node->getChild(i);
-            if (child) {
-                findDisks(child);
-            }
-        }
-    };
-    
-    // First find NVMe controllers
-    findNVMeControllers(&system);
-    
-    // Then find disks and match with controller info
-    findDisks(&system);
-    
+
+    // Fetch disks
+    std::vector<DiskManagement::Disk> disks;
+
+    fetchDisks(&system, NULL, disks);
+
+    // Fetch all available disks and return
     return disks;
 }
