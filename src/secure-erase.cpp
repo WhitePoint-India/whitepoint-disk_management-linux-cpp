@@ -1,19 +1,44 @@
 
+#include <disk-management>
 #include <iostream>
-#include "internal/secure-erase.h"
 
-void DiskManagement::Internal::SecureErase::deleteDisk(DiskManagement::Disk& disk) const {
+void DiskManagement::SecureErase::deleteDisk(DiskManagement::ATADisk& disk) const {
     
-    std::cout << "--- Disk Information ---" << std::endl;
-    
+    std::cout << "--- Performing Secure Erase on ATA Disk ---" << std::endl;
+        
     std::cout << "Serial : " << disk.serial << std::endl;
     std::cout << "Model : " << disk.model << std::endl;
-    std::cout << "Path : " << disk.path<< std::endl;
+    std::cout << "Path : " << disk.path << std::endl;
     std::cout << "Description : " << disk.description << std::endl;
     std::cout << "Size : " << disk.size << std::endl;
     std::cout << "Sector count : " << disk.getSectorCount() << std::endl;
-    std::cout << "State : " << disk.state << std::endl;
+    std::cout << "Frozen : " << (disk.isFrozen() ? "Yes" : "No") << std::endl;
+
+    if (disk.isFrozen()) {
+        std::cout << "Disk is frozen. Unfreezing..." << std::endl;
+        disk.unfreeze();
+    }
+
+    // TODO: Implement actual secure erase command
+    std::cout << "Secure erase would be performed here" << std::endl;
+    
+    std::cout << "------------------------" << std::endl;
+}
 
 
+void DiskManagement::SecureErase::deleteDisk(DiskManagement::NVMeDisk& disk) const {
+    
+    std::cout << "--- Performing Secure Erase on NVMe Disk ---" << std::endl;
+        
+    std::cout << "Serial : " << disk.serial << std::endl;
+    std::cout << "Model : " << disk.model << std::endl;
+    std::cout << "Path : " << disk.path << std::endl;
+    std::cout << "Description : " << disk.description << std::endl;
+    std::cout << "Size : " << disk.size << std::endl;
+    std::cout << "Sector count : " << disk.getSectorCount() << std::endl;
+
+    // TODO: Implement actual secure erase command
+    std::cout << "Secure erase would be performed here" << std::endl;
+    
     std::cout << "------------------------" << std::endl;
 }

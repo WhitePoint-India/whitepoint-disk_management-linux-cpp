@@ -7,31 +7,70 @@ DiskManagement::Disk::Disk(
     const std::string& path,
     const std::string& description,
     unsigned long long size,
-    unsigned long long sectorSize,
-    DiskState state
-) : serial(serial), 
+    unsigned long long sectorSize
+) : serial(serial),
     model(model), 
     path(path), 
     description(description), 
     size(size), 
-    sectorSize(sectorSize),
-    state(state) {
+    sectorSize(sectorSize) {
 }
 
 unsigned long long DiskManagement::Disk::getSectorCount() {
     return size / sectorSize;
 }
 
-bool DiskManagement::Disk::isFrozen() const {
+
+DiskManagement::ATADisk::ATADisk(
+    const std::string& serial,
+    const std::string& model,
+    const std::string& path,
+    const std::string& description,
+    unsigned long long size,
+    unsigned long long sectorSize,
+    DiskState state
+) : Disk(
+        serial,
+        model,
+        path,
+        description,
+        size,
+        sectorSize
+    ),
+    state(state) {
+}
+
+bool DiskManagement::ATADisk::isFrozen() {
     return state == DiskState::FROZEN;
 }
 
-void DiskManagement::Disk::unfreeze() {
+void DiskManagement::ATADisk::unfreeze() {
     if (state == DiskState::FROZEN) {
         state = DiskState::READY;
     }
 }
 
-void DiskManagement::Disk::deleteDisk(const DiskManagement::DiskDeleteMethod& method) {
+void DiskManagement::ATADisk::deleteDisk(const ATADiskDeleteMethod& method) {
+    method.deleteDisk(*this);
+}
+
+DiskManagement::NVMeDisk::NVMeDisk(
+    const std::string& serial,
+    const std::string& model,
+    const std::string& path,
+    const std::string& description,
+    unsigned long long size,
+    unsigned long long sectorSize
+) : Disk(
+        serial,
+        model,
+        path,
+        description,
+        size,
+        sectorSize
+    ) {
+}
+
+void DiskManagement::NVMeDisk::deleteDisk(const NVMeDiskDeleteMethod& method) {
     method.deleteDisk(*this);
 }

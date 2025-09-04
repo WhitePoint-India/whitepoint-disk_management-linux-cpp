@@ -6,11 +6,6 @@
 #include <memory>
 
 namespace DiskManagement {
-    
-    enum DiskState {
-        READY,
-        FROZEN
-    };
 
     class DiskDeleteMethod {
     public:
@@ -18,7 +13,6 @@ namespace DiskManagement {
         virtual void deleteDisk(class Disk& disk) const = 0;
     };
 
-    extern const DiskDeleteMethod& SECURE_ERASE_METHOD;
     extern const DiskDeleteMethod& GUTMANN_METHOD;
 
     class Disk {
@@ -29,9 +23,38 @@ namespace DiskManagement {
         std::string description;
         unsigned long long size;
         unsigned long long sectorSize;
-        DiskState state;
 
         Disk(
+            const std::string& serial,
+            const std::string& model,
+            const std::string& path,
+            const std::string& description,
+            unsigned long long size,
+            unsigned long long sectorSize
+        );
+
+        virtual ~Disk() = default;
+
+        unsigned long long getSectorCount();
+        
+        // void deleteDisk(const DiskDeleteMethod& method = SECURE_ERASE_METHOD);
+    };
+
+    class ATADisk: public Disk {
+    public:
+        enum DiskState {
+            READY,
+            FROZEN
+        };
+
+        class ATADiskDeleteMethod {
+        public:
+            virtual void deleteDisk(class ATADisk& disk) const = 0;
+        };
+
+        DiskState state;
+
+        ATADisk(
             const std::string& serial,
             const std::string& model,
             const std::string& path,
@@ -41,14 +64,42 @@ namespace DiskManagement {
             DiskState state
         );
 
-        unsigned long long getSectorCount();
-        
-        bool isFrozen() const;
+        bool isFrozen();
         void unfreeze();
-        void deleteDisk(const DiskDeleteMethod& method = SECURE_ERASE_METHOD);
+
+        void deleteDisk(const ATADiskDeleteMethod& method);
     };
 
-    std::vector<Disk> fetchDisks();
+    class NVMeDisk: public Disk {
+    public:
+
+        class NVMeDiskDeleteMethod {
+        public:
+            virtual void deleteDisk(class NVMeDisk& disk) const = 0;
+        };
+
+        NVMeDisk(
+            const std::string& serial,
+            const std::string& model,
+            const std::string& path,
+            const std::string& description,
+            unsigned long long size,
+            unsigned long long sectorSize
+        );
+
+        void deleteDisk(const NVMeDiskDeleteMethod& method);
+    };
+
+    class SecureErase : public ATADisk::ATADiskDeleteMethod, public NVMeDisk::NVMeDiskDeleteMethod {
+    public:
+        void deleteDisk(ATADisk& disk) const override;
+
+        void deleteDisk(NVMeDisk& disk) const override;
+    };
+
+    extern const SecureErase& SECURE_ERASE_METHOD;
+
+    std::vector<std::unique_ptr<Disk>> fetchDisks();
 }
 
 #endif // DISK_MANAGEMENT_H
