@@ -7,14 +7,6 @@
 
 namespace DiskManagement {
 
-    class DiskDeleteMethod {
-    public:
-        virtual ~DiskDeleteMethod() = default;
-        virtual void deleteDisk(class Disk& disk) const = 0;
-    };
-
-    extern const DiskDeleteMethod& GUTMANN_METHOD;
-
     class Disk {
     public:
         std::string serial;
@@ -36,8 +28,6 @@ namespace DiskManagement {
         virtual ~Disk() = default;
 
         unsigned long long getSectorCount();
-        
-        // void deleteDisk(const DiskDeleteMethod& method = SECURE_ERASE_METHOD);
     };
 
     class ATADisk: public Disk {
@@ -97,7 +87,14 @@ namespace DiskManagement {
         void deleteDisk(NVMeDisk& disk) const override;
     };
 
+    class GutmannMethod : public ATADisk::ATADiskDeleteMethod {
+    public:
+        void deleteDisk(ATADisk& disk) const override;
+    };
+
     extern const SecureErase& SECURE_ERASE_METHOD;
+
+    extern const GutmannMethod& GUTMANN_METHOD;
 
     std::vector<std::unique_ptr<Disk>> fetchDisks();
 }

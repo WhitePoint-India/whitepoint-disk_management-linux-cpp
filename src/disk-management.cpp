@@ -1,5 +1,4 @@
 #include <disk-management>
-#include "internal/gutmann-method.h"
 #include "hw.h"
 #include "main.h"
 
@@ -19,11 +18,11 @@ void status(const char*) {
 
 namespace {
     const DiskManagement::SecureErase secureEraseInstance;
-    const DiskManagement::Internal::GutmannMethod gutmannMethodInstance;
+    const DiskManagement::GutmannMethod gutmannMethodInstance;
 }
 
 const DiskManagement::SecureErase& DiskManagement::SECURE_ERASE_METHOD = secureEraseInstance;
-const DiskManagement::DiskDeleteMethod& DiskManagement::GUTMANN_METHOD = gutmannMethodInstance;
+const DiskManagement::GutmannMethod& DiskManagement::GUTMANN_METHOD = gutmannMethodInstance;
 
 enum class DiskType {
     NVMe,
