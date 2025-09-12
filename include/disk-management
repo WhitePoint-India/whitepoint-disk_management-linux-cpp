@@ -58,6 +58,7 @@ namespace DiskManagement {
         void unfreeze();
 
         void deleteDisk(const ATADiskDeleteMethod& method);
+        void deleteDisk();
     };
 
     class NVMeDisk: public Disk {
@@ -77,8 +78,29 @@ namespace DiskManagement {
             unsigned long long sectorSize
         );
 
+        /// @brief deleteDisk() is used to delete NVMeDisk using a proper NVMeDiskDeleteMethod
+        /// @param method is an object of type NVMeDiskDeleteMthod
         void deleteDisk(const NVMeDiskDeleteMethod& method);
+
+        void deleteDisk();
     };
+
+    class USBDisk: public Disk {
+    public:
+        class USBDiskDeleteMethod {
+            virtual void deleteDisk(class NVMeDisk& disk) const = 0;
+        };
+
+        USBDisk(
+            const std::string& serial,
+            const std::string& model,
+            const std::string& path,
+            const std::string& description,
+            unsigned long long size,
+            unsigned long long sectorSize
+        );
+    };
+
 
     class SecureErase : public ATADisk::ATADiskDeleteMethod, public NVMeDisk::NVMeDiskDeleteMethod {
     public:
@@ -87,13 +109,14 @@ namespace DiskManagement {
         void deleteDisk(NVMeDisk& disk) const override;
     };
 
-    class GutmannMethod : public ATADisk::ATADiskDeleteMethod {
+    class GutmannMethod : public ATADisk::ATADiskDeleteMethod, public NVMeDisk::NVMeDiskDeleteMethod {
     public:
         void deleteDisk(ATADisk& disk) const override;
+
+        void deleteDisk(NVMeDisk& disk) const override;
     };
 
     extern const SecureErase& SECURE_ERASE_METHOD;
-
     extern const GutmannMethod& GUTMANN_METHOD;
 
     std::vector<std::unique_ptr<Disk>> fetchDisks();
