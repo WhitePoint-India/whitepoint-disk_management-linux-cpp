@@ -14,7 +14,7 @@ namespace DiskManagement {
         std::string path;
         std::string description;
         unsigned long long size;
-        unsigned long long sectorSize;
+        int sectorSize;
 
         Disk(
             const std::string& serial,
@@ -22,7 +22,7 @@ namespace DiskManagement {
             const std::string& path,
             const std::string& description,
             unsigned long long size,
-            unsigned long long sectorSize
+            int sectorSize
         );
 
         virtual ~Disk() = default;
@@ -50,7 +50,7 @@ namespace DiskManagement {
             const std::string& path,
             const std::string& description,
             unsigned long long size,
-            unsigned long long sectorSize,
+            int sectorSize,
             DiskState state
         );
 
@@ -75,7 +75,7 @@ namespace DiskManagement {
             const std::string& path,
             const std::string& description,
             unsigned long long size,
-            unsigned long long sectorSize
+            int sectorSize
         );
 
         /// @brief deleteDisk() is used to delete NVMeDisk using a proper NVMeDiskDeleteMethod
@@ -97,7 +97,7 @@ namespace DiskManagement {
             const std::string& path,
             const std::string& description,
             unsigned long long size,
-            unsigned long long sectorSize
+            int sectorSize
         );
     };
 

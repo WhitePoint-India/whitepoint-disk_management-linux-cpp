@@ -7,7 +7,7 @@ DiskManagement::Disk::Disk(
     const std::string& path,
     const std::string& description,
     unsigned long long size,
-    unsigned long long sectorSize
+    int sectorSize
 ) : serial(serial),
     model(model), 
     path(path), 
@@ -27,7 +27,7 @@ DiskManagement::ATADisk::ATADisk(
     const std::string& path,
     const std::string& description,
     unsigned long long size,
-    unsigned long long sectorSize,
+    int sectorSize,
     DiskState state
 ) : Disk(
         serial,
@@ -64,7 +64,7 @@ DiskManagement::NVMeDisk::NVMeDisk(
     const std::string& path,
     const std::string& description,
     unsigned long long size,
-    unsigned long long sectorSize
+    int sectorSize
 ) : Disk(
         serial,
         model,
@@ -89,7 +89,7 @@ DiskManagement::USBDisk::USBDisk(
     const std::string& path,
     const std::string& description,
     unsigned long long size,
-    unsigned long long sectorSize
+    int sectorSize
 ) : Disk(
         serial,
         model,
