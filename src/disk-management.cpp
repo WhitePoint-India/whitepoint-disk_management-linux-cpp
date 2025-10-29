@@ -26,59 +26,31 @@ namespace {
 void fetchDisksRecursively(hwNode* node, hwNode* parent, std::vector<std::unique_ptr<DiskManagement::Disk>>& disks) {
 
     if (!node) {
-        std::cerr << "[DEBUG] Null node encountered" << std::endl;
+        std::cerr << "[DEBUG] fetchDisksRecursively exiting. Node value passed is NULL." << std::endl;
         return;
     }
 
-    // Debug: Show what we're examining
-    std::cerr << "[DEBUG] Examining node: class=" << node->getClass()
-              << ", product=" << node->getProduct()
-              << ", logical=" << node->getLogicalName() << std::endl;
-
     if (node->getClass() == hw::disk) {
-        std::cerr << "[DEBUG] Found disk node!" << std::endl;
 
-        if (!parent) {
-            std::cerr << "[ERROR] Disk node has null parent, skipping" << std::endl;
-            return;
-        }
+        std::vector<string> capabilities;
 
-        std::vector<string> capabilities = parent->getCapabilitiesList();
-        std::cerr << "[DEBUG] Parent capabilities count: " << capabilities.size() << std::endl;
-        for (const auto& cap : capabilities) {
-            std::cerr << "[DEBUG]   Parent capability: " << cap << std::endl;
-        }
-
-        // Also check node's own capabilities as fallback
-        std::vector<string> nodeCapabilities = node->getCapabilitiesList();
-        std::cerr << "[DEBUG] Node capabilities count: " << nodeCapabilities.size() << std::endl;
-        for (const auto& cap : nodeCapabilities) {
-            std::cerr << "[DEBUG]   Node capability: " << cap << std::endl;
-        }
-
-        // If parent has no capabilities, use node's capabilities
-        if (capabilities.empty() && !nodeCapabilities.empty()) {
-            std::cerr << "[DEBUG] Using node capabilities instead of parent" << std::endl;
-            capabilities = nodeCapabilities;
-        }
-
-        std::string sectorSizeValue = node->getConfig("logicalsectorsize");
-        std::cerr << "[DEBUG] Sector size: '" << sectorSizeValue << "'" << std::endl;
-
-        // If still no capabilities, try to detect from logical name
         if (capabilities.empty()) {
             std::string logicalName = node->getLogicalName();
-            std::cerr << "[DEBUG] No capabilities found, checking logical name: " << logicalName << std::endl;
-
             if (logicalName.find("/dev/nvme") != std::string::npos) {
+                std::cerr << "[DEBUG] Identified disk to be NVME. (" << logicalName << ")" << std::endl;
                 capabilities.push_back("nvme");
             } else if (logicalName.find("/dev/sd") != std::string::npos) {
+                std::cerr << "[DEBUG] Identified disk to be ATA. (" << logicalName << ")" << std::endl;
                 capabilities.push_back("sata");
             } else if (logicalName.find("/dev/hd") != std::string::npos) {
+                std::cerr << "[DEBUG] Identified disk to be IDE. (" << logicalName << ")" << std::endl;
                 capabilities.push_back("ide");
             }
         }
 
+        std::string sectorSizeValue = node->getConfig("logicalsectorsize");
+
+        std::cout << "[DEBUG] Sector size of disk '" << node->getLogicalName() << "' :: " << sectorSizeValue << std::endl;
 
         for (string& capability: capabilities) {
             if (capability.find("usb") != std::string::npos) {
@@ -109,38 +81,20 @@ void fetchDisksRecursively(hwNode* node, hwNode* parent, std::vector<std::unique
                     node->getLogicalName(),
                     node->getDescription(),
                     node->getSize(),
-                    std::stoi(sectorSizeValue)
+                    0
                 );
                 return disks.push_back(std::move(disk));
             }
-            else if (capability.find("sata") != std::string::npos || capability.find("ide") != std::string::npos || capability.find("ata") != std::string::npos) {
-
-                if (sectorSizeValue.empty()) {
-                    // Try alternative sector size configs
-                    sectorSizeValue = node->getConfig("sectorsize");
-                    if (sectorSizeValue.empty()) {
-                        // Default to 512 if not available but disk has size
-                        if (node->getSize() > 0) {
-                            sectorSizeValue = "512";
-                            std::cerr << "[DEBUG] Using default sector size 512" << std::endl;
-                        } else {
-                            // Ignoring any connected device for which sectors are not available. eg: CD/DVD ROM.
-                            std::cerr << "[DEBUG] Skipping device without sector size and zero size" << std::endl;
-                            return;
-                        }
-                    }
-                }
-
+            else if (capability.find("sata") != std::string::npos) {
                 std::unique_ptr<DiskManagement::ATADisk> disk = std::make_unique<DiskManagement::ATADisk>(
                     node->getSerial(),
                     node->getProduct(),
                     node->getLogicalName(),
                     node->getDescription(),
                     node->getSize(),
-                    std::stoi(sectorSizeValue),
+                    0,
                     DiskManagement::ATADisk::DiskState::READY
                 );
-                std::cerr << "[DEBUG] Created ATA/SATA/IDE disk" << std::endl;
                 return disks.push_back(std::move(disk));
             }
             else if (capability.find("sas") != std::string::npos) {
