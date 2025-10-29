@@ -79,6 +79,7 @@ void fetchDisksRecursively(hwNode* node, hwNode* parent, std::vector<std::unique
             }
         }
 
+
         for (string& capability: capabilities) {
             if (capability.find("usb") != std::string::npos) {
                 std::unique_ptr<DiskManagement::USBDisk> disk = std::make_unique<DiskManagement::USBDisk>(
