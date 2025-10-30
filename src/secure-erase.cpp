@@ -4,41 +4,18 @@
 
 void DiskManagement::SecureErase::deleteDisk(DiskManagement::ATADisk& disk) const {
     
-    std::cout << "--- Performing Secure Erase on ATA Disk ---" << std::endl;
-        
-    std::cout << "Serial : " << disk.serial << std::endl;
-    std::cout << "Model : " << disk.model << std::endl;
-    std::cout << "Path : " << disk.path << std::endl;
-    std::cout << "Description : " << disk.description << std::endl;
-    std::cout << "Size : " << disk.size << std::endl;
-    std::cout << "Sector count : " << disk.getSectorCount() << std::endl;
-    std::cout << "Frozen : " << (disk.isFrozen() ? "Yes" : "No") << std::endl;
+    std::string commandSetPassword = "hdparm --user-master u --security-set-pass whitepoint " + disk.path;
+    std::string commandPerformSecureErase = "hdparm --user-master u --security-erase whitepoint " + disk.path;
 
-    if (disk.isFrozen()) {
-        std::cout << "Disk is frozen. Unfreezing..." << std::endl;
-        disk.unfreeze();
-    }
+    system(commandSetPassword.c_str());
 
-    // TODO: Implement actual secure erase command
-    std::cout << "Secure erase would be performed here" << std::endl;
-    
-    std::cout << "------------------------" << std::endl;
+    system(commandPerformSecureErase.c_str());
 }
 
 
 void DiskManagement::SecureErase::deleteDisk(DiskManagement::NVMeDisk& disk) const {
     
-    std::cout << "--- Performing Secure Erase on NVMe Disk ---" << std::endl;
-        
-    std::cout << "Serial : " << disk.serial << std::endl;
-    std::cout << "Model : " << disk.model << std::endl;
-    std::cout << "Path : " << disk.path << std::endl;
-    std::cout << "Description : " << disk.description << std::endl;
-    std::cout << "Size : " << disk.size << std::endl;
-    std::cout << "Sector count : " << disk.getSectorCount() << std::endl;
+    std::string commandSecureErase = "nvme format " + disk.path + " -s 1 -f";
 
-    // TODO: Implement actual secure erase command
-    std::cout << "Secure erase would be performed here" << std::endl;
-    
-    std::cout << "------------------------" << std::endl;
+    system(commandSecureErase.c_str());
 }
