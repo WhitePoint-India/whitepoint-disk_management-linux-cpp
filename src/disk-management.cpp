@@ -114,20 +114,16 @@ void fetchDisksRecursively(hwNode* node, hwNode* parent, std::vector<std::unique
 } // anonymous namespace
 
 std::vector<std::unique_ptr<DiskManagement::Disk>> DiskManagement::fetchDisks() {
-    std::cerr << "[DEBUG] Starting disk detection..." << std::endl;
-
+    
     // Create a hwNode to scan the system
     hwNode system("computer");
-    std::cerr << "[DEBUG] Created hwNode" << std::endl;
 
     // Scan the system for hardware
     scan_system(system);
-    std::cerr << "[DEBUG] Completed scan_system, children count: " << system.countChildren() << std::endl;
 
     // Fetch disks using smart pointers
     std::vector<std::unique_ptr<Disk>> disks;
     fetchDisksRecursively(&system, nullptr, disks);
 
-    std::cerr << "[DEBUG] Found " << disks.size() << " disks total" << std::endl;
     return disks;
 }
