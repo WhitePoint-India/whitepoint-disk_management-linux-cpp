@@ -15,7 +15,7 @@ void DiskManagement::SecureErase::deleteDisk(DiskManagement::ATADisk& disk) cons
 
 void DiskManagement::SecureErase::deleteDisk(DiskManagement::NVMeDisk& disk) const {
     
-    std::string commandSecureErase = "nvme format " + disk.path + " -s 1 -f";
+    std::string commandSecureErase = "nvme format " + disk.path + " -s 1 -f > /dev/null 2>&1";
 
     system(commandSecureErase.c_str());
 }
