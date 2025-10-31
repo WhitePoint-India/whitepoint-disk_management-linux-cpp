@@ -4,8 +4,8 @@
 
 void DiskManagement::SecureErase::deleteDisk(DiskManagement::ATADisk& disk) const {
     
-    std::string commandSetPassword = "hdparm --user-master u --security-set-pass whitepoint " + disk.path;
-    std::string commandPerformSecureErase = "hdparm --user-master u --security-erase whitepoint " + disk.path;
+    std::string commandSetPassword = "hdparm --user-master u --security-set-pass whitepoint " + disk.path + " > /dev/null 2>&1";
+    std::string commandPerformSecureErase = "hdparm --user-master u --security-erase whitepoint " + disk.path + " > /dev/null 2>&1";
 
     system(commandSetPassword.c_str());
 
