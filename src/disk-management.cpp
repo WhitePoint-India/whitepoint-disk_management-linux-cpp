@@ -4,6 +4,8 @@
 #include <iostream>
 #include <disk-management>
 
+#define DEFAULT_SECTOR_SIZE 512
+
 // Provide a stub for the status function used by lshw
 // In a real implementation, this could show progress to the user
 void status(const char* args) {
@@ -25,32 +27,28 @@ namespace {
 
 void fetchDisksRecursively(hwNode* node, hwNode* parent, std::vector<std::unique_ptr<DiskManagement::Disk>>& disks) {
 
-    if (!node) {
-        std::cerr << "[DEBUG] fetchDisksRecursively exiting. Node value passed is NULL." << std::endl;
-        return;
-    }
+    if (!node) { return; }
 
     if (node->getClass() == hw::disk) {
 
-        std::vector<string> capabilities;
+        std::vector<string> capabilities = parent->getCapabilitiesList();
 
         if (capabilities.empty()) {
-            std::string logicalName = node->getLogicalName();
-            if (logicalName.find("/dev/nvme") != std::string::npos) {
-                std::cerr << "[DEBUG] Identified disk to be NVME. (" << logicalName << ")" << std::endl;
+            std::string nodeDescription = node->getDescription();
+            if (nodeDescription.find("NVMe disk") != std::string::npos) {
                 capabilities.push_back("nvme");
-            } else if (logicalName.find("/dev/sd") != std::string::npos) {
-                std::cerr << "[DEBUG] Identified disk to be ATA. (" << logicalName << ")" << std::endl;
+            }
+            else if (nodeDescription.find("ATA Disk") != std::string::npos) {
                 capabilities.push_back("sata");
-            } else if (logicalName.find("/dev/hd") != std::string::npos) {
-                std::cerr << "[DEBUG] Identified disk to be IDE. (" << logicalName << ")" << std::endl;
-                capabilities.push_back("ide");
+            }
+            else {
+                std::cout << "Unknown disk type for disk: " << node->getLogicalName() << ", description : " << nodeDescription << std::endl;
+                return;
             }
         }
 
         std::string sectorSizeValue = node->getConfig("logicalsectorsize");
-
-        std::cout << "[DEBUG] Sector size of disk '" << node->getLogicalName() << "' :: " << sectorSizeValue << std::endl;
+        int sectorSize = sectorSizeValue.empty() ? DEFAULT_SECTOR_SIZE : std::stoi(sectorSizeValue);
 
         for (string& capability: capabilities) {
             if (capability.find("usb") != std::string::npos) {
@@ -60,7 +58,7 @@ void fetchDisksRecursively(hwNode* node, hwNode* parent, std::vector<std::unique
                     node->getLogicalName(),
                     node->getDescription(),
                     node->getSize(),
-                    0
+                    sectorSize
                 );
                 return disks.push_back(std::move(disk));
             }
@@ -74,14 +72,13 @@ void fetchDisksRecursively(hwNode* node, hwNode* parent, std::vector<std::unique
                 if (logicalName.find("/dev/ng") == 0) {
                     return;
                 }
-                // Use alternate: sectorsize
                 std::unique_ptr<DiskManagement::NVMeDisk> disk = std::make_unique<DiskManagement::NVMeDisk>(
                     parent->getSerial(),
                     parent->getProduct(),
                     node->getLogicalName(),
                     node->getDescription(),
                     node->getSize(),
-                    0
+                    sectorSize
                 );
                 return disks.push_back(std::move(disk));
             }
@@ -92,25 +89,16 @@ void fetchDisksRecursively(hwNode* node, hwNode* parent, std::vector<std::unique
                     node->getLogicalName(),
                     node->getDescription(),
                     node->getSize(),
-                    0,
+                    sectorSize,
                     DiskManagement::ATADisk::DiskState::READY
                 );
                 return disks.push_back(std::move(disk));
             }
             else if (capability.find("sas") != std::string::npos) {
-                std::unique_ptr<DiskManagement::Disk> disk = std::make_unique<DiskManagement::Disk>(
-                    node->getSerial(),
-                    node->getProduct(),
-                    node->getLogicalName(),
-                    node->getDescription(),
-                    node->getSize(),
-                    0
-                );
-                return disks.push_back(std::move(disk));
+                return; // Skip SAS disks for now
             }
             else {
-                // Skipping unknown capability. 
-                continue;
+                continue; // Skipping unknown capability.
             }
         }
     }
