@@ -42,7 +42,6 @@ void fetchDisksRecursively(hwNode* node, hwNode* parent, std::vector<std::unique
                 capabilities.push_back("sata");
             }
             else {
-                std::cout << "Unknown disk type for disk: " << node->getLogicalName() << ", description : " << nodeDescription << std::endl;
                 return;
             }
         }
