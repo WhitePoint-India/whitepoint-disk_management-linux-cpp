@@ -16,7 +16,7 @@ DiskManagement::Disk::Disk(
     sectorSize(sectorSize) {
 }
 
-unsigned long long DiskManagement::Disk::getSectorCount() {
+unsigned long long DiskManagement::Disk::getSectorCount() const {
     return size / sectorSize;
 }
 

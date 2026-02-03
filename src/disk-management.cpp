@@ -17,11 +17,15 @@ namespace {
 
 const DiskManagement::SecureErase secureEraseInstance;
 const DiskManagement::GutmannMethod gutmannMethodInstance;
+const DiskManagement::NISTClear nistClearInstance;
+const DiskManagement::NISTPurge nistPurgeInstance;
 
 }
 
 const DiskManagement::SecureErase& DiskManagement::SECURE_ERASE_METHOD = secureEraseInstance;
 const DiskManagement::GutmannMethod& DiskManagement::GUTMANN_METHOD = gutmannMethodInstance;
+const DiskManagement::NISTClear& DiskManagement::NIST_CLEAR_METHOD = nistClearInstance;
+const DiskManagement::NISTPurge& DiskManagement::NIST_PURGE_METHOD = nistPurgeInstance;
 
 namespace {
 

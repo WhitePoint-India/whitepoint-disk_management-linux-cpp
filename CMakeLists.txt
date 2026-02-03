@@ -1,6 +1,18 @@
 # DiskManagement-Linux library CMakeLists.txt
 cmake_minimum_required(VERSION 3.11)
-project(disk-management VERSION 1.0.0 LANGUAGES CXX)
+project(disk-management VERSION 2.0.0 LANGUAGES CXX)
+
+# =============================================================================
+# FetchContent - nlohmann/json for NIST 800-88 Audit Logging
+# =============================================================================
+
+include(FetchContent)
+
+FetchContent_Declare(nlohmann_json
+    GIT_REPOSITORY https://github.com/nlohmann/json.git
+    GIT_TAG v3.11.3
+)
+FetchContent_MakeAvailable(nlohmann_json)
 
 # =============================================================================
 # lshw External Dependency (Git Submodule)
@@ -48,6 +60,12 @@ add_library(disk-management STATIC
     src/secure-erase.cpp
     src/gutmann-method.cpp
     src/disk-management.cpp
+    # NIST 800-88 Implementation
+    src/command-executor.cpp
+    src/audit-logger.cpp
+    src/disk-verifier.cpp
+    src/nist-clear.cpp
+    src/nist-purge.cpp
 )
 
 # Configure include directories
@@ -60,4 +78,8 @@ target_include_directories(disk-management PUBLIC
 target_compile_features(disk-management PUBLIC cxx_std_20)
 
 # Link external dependencies
-target_link_libraries(disk-management PUBLIC lshw)
+target_link_libraries(disk-management
+    PUBLIC
+        lshw
+        nlohmann_json::nlohmann_json
+)

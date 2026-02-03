@@ -4,6 +4,9 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <optional>
+#include <utility>
+#include <nlohmann/json.hpp>
 
 namespace DiskManagement {
 
@@ -27,7 +30,7 @@ namespace DiskManagement {
 
         virtual ~Disk() = default;
 
-        unsigned long long getSectorCount();
+        unsigned long long getSectorCount() const;
     };
 
     class ATADisk: public Disk {
@@ -116,8 +119,126 @@ namespace DiskManagement {
         void deleteDisk(NVMeDisk& disk) const override;
     };
 
+    // =========================================================================
+    // NIST 800-88 Support Classes and Types
+    // =========================================================================
+
+    enum class SanitizationResult {
+        SUCCESS,
+        DISK_FROZEN,
+        HPA_DETECTION_FAILED,
+        HPA_REMOVAL_FAILED,
+        DCO_DETECTION_FAILED,
+        DCO_REMOVAL_FAILED,
+        SANITIZE_COMMAND_FAILED,
+        DISK_NOT_SUPPORTED,
+        PERMISSION_DENIED,
+        TIMEOUT,
+        LOG_WRITE_FAILED
+    };
+
+    struct SanitizationStatus {
+        SanitizationResult result;
+        std::string message;
+        std::optional<std::string> logId;
+    };
+
+    class CommandExecutor {
+    public:
+        struct CommandResult {
+            int exitCode;
+            std::string stdout;
+            std::string stderr;
+            bool success;
+        };
+
+        static CommandResult execute(const std::string& command, int timeoutSeconds = 0);
+        static std::pair<bool, unsigned long long> detectHPA(const std::string& diskPath);
+        static bool detectDCO(const std::string& diskPath);
+        static bool removeHPA(const std::string& diskPath, unsigned long long maxSectors);
+        static bool removeDCO(const std::string& diskPath);
+        static bool checkDiskFrozen(const std::string& diskPath);
+    };
+
+    // =========================================================================
+    // NIST 800-88 Verification System
+    // =========================================================================
+
+    enum class VerificationLevel {
+        NONE,                // No verification
+        SAMPLING,           // Random 10% sector sampling
+        FULL,               // Full sequential read-back
+        DEVICE_LOG          // Check device sanitize log (NVMe only)
+    };
+
+    struct VerificationResult {
+        bool passed;
+        VerificationLevel level;
+        std::string message;
+        unsigned long long sectorsVerified;
+        unsigned long long sectorsTotal;
+    };
+
+    class AuditLogger {
+    public:
+        explicit AuditLogger(const Disk& disk, const std::string& method);
+        void logHPAStatus(bool detected, bool removed, unsigned long long hiddenSectors = 0);
+        void logDCOStatus(bool detected, bool removed);
+        void logCommandExecution(const std::string& command, const CommandExecutor::CommandResult& result);
+        void logVerification(const VerificationResult& result);
+        void logCompletion(const std::string& status);
+        std::string finalize();
+
+        nlohmann::json logData;  // Public for direct access from NIST implementations
+    private:
+        std::string logId;
+        static std::string getCurrentTimestamp();
+        static std::string getHostname();
+        static std::string getOperator();
+    };
+
+    class DiskVerifier {
+    public:
+        // Verify ATA disk erasure
+        static VerificationResult verifyATADisk(const ATADisk& disk, VerificationLevel level);
+
+        // Verify NVMe disk erasure
+        static VerificationResult verifyNVMeDisk(const NVMeDisk& disk, VerificationLevel level);
+
+        // Sampling verification (reads random 10% of sectors)
+        static VerificationResult verifySampling(const Disk& disk, double samplePercent = 0.10);
+
+        // Full verification (reads all sectors sequentially)
+        static VerificationResult verifyFull(const Disk& disk);
+
+        // Check NVMe sanitize log for completion status
+        static VerificationResult checkNVMeSanitizeLog(const std::string& devicePath);
+    };
+
+    // =========================================================================
+    // NIST 800-88 Sanitization Methods (Government/DoD Compliance)
+    // =========================================================================
+
+    class NISTClear : public ATADisk::ATADiskDeleteMethod, public NVMeDisk::NVMeDiskDeleteMethod {
+    public:
+        void deleteDisk(ATADisk& disk) const override;
+        void deleteDisk(NVMeDisk& disk) const override;
+        SanitizationStatus deleteDiskWithStatus(ATADisk& disk) const;
+        SanitizationStatus deleteDiskWithStatus(NVMeDisk& disk) const;
+    };
+
+    class NISTPurge : public ATADisk::ATADiskDeleteMethod, public NVMeDisk::NVMeDiskDeleteMethod {
+    public:
+        void deleteDisk(ATADisk& disk) const override;
+        void deleteDisk(NVMeDisk& disk) const override;
+        SanitizationStatus deleteDiskWithStatus(ATADisk& disk) const;
+        SanitizationStatus deleteDiskWithStatus(NVMeDisk& disk) const;
+    };
+
     extern const SecureErase& SECURE_ERASE_METHOD;
     extern const GutmannMethod& GUTMANN_METHOD;
+    extern const NISTClear& NIST_CLEAR_METHOD;
+    extern const NISTPurge& NIST_PURGE_METHOD;
 
     std::vector<std::unique_ptr<Disk>> fetchDisks();
 }
