@@ -1,36 +1,23 @@
 
 #include <iostream>
-#include <disk-management>
+#include <disk-operations>
 
-// void DiskManagement::SecureErase::deleteDisk(DiskManagement::ATADisk& disk) const {
-    
-//     std::string commandSetPassword = "hdparm --user-master u --security-set-pass whitepoint " + disk.path + " > /dev/null 2>&1";
-//     std::string commandPerformSecureErase = "hdparm --user-master u --security-erase whitepoint " + disk.path + " > /dev/null 2>&1";
+namespace DiskOperations {
 
-//     system(commandSetPassword.c_str());
+    namespace SecureErase {
 
-//     system(commandPerformSecureErase.c_str());
-// }
+        void Operation::deleteDisk(DiskManagement::ATADisk& disk, AnyDeleteOperation<DiskManagement::ATADisk, OperationStage>::Callback callback) const {
+            for (int i = 0; i <= 100; i++) {
+                Progress progress = Progress(i, 100);
+                callback(OperationStage::ERASURE, progress);
+            }
+        }
 
-
-// void DiskManagement::SecureErase::deleteDisk(DiskManagement::NVMeDisk& disk) const {
-    
-//     std::string commandSecureErase = "nvme format " + disk.path + " -s 1 -f > /dev/null 2>&1";
-
-//     system(commandSecureErase.c_str());
-// }
-
-
-void DiskOperations::SecureErase::deleteDisk(DiskManagement::ATADisk& disk, DiskOperations::ATADisk::DeleteOperation::Callback callback) const {
-    for (int i = 0; i <= 100; i++) {
-        Progress progress = Progress(i, 100);
-        callback(ATADisk::Stage::ERASURE, progress);
-    }
-}
-
-void DiskOperations::SecureErase::deleteDisk(DiskManagement::NVMeDisk& disk, DiskOperations::NVMeDisk::DeleteOperation::Callback callback) const {
-    for (int i = 0; i <= 100; i++) {
-        Progress progress = Progress(i, 100);
-        callback(NVMeDisk::Stage::ERASURE, progress);
-    }
-}
+        void Operation::deleteDisk(DiskManagement::NVMeDisk& disk, AnyDeleteOperation<DiskManagement::NVMeDisk, OperationStage>::Callback callback) const {
+            for (int i = 0; i <= 100; i++) {
+                Progress progress = Progress(i, 100);
+                callback(OperationStage::ERASURE, progress);
+            }
+        }
+    } // NIST_800_88
+} // DiskOperations

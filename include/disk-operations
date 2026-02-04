@@ -42,10 +42,10 @@ namespace DiskOperations {
 
         virtual void deleteDisk(Disk& disk, Callback callback) const = 0;
     };
+    
+    namespace NIST_800_88 {
 
-    namespace ATADisk {
-
-        enum class Stage {
+        enum class OperationStage {
             DISK_FREEZE_CHECK,
             HPA_AVAILABILITY_CHECK,
             HPA_REMOVAL,
@@ -56,37 +56,51 @@ namespace DiskOperations {
             VERIFICATION
         };
 
-        class DeleteOperation : public AnyDeleteOperation<DiskManagement::ATADisk, Stage> {
+        class Operation : public AnyDeleteOperation<DiskManagement::ATADisk, OperationStage>, public AnyDeleteOperation<DiskManagement::NVMeDisk, OperationStage> {
+        public:
+            void deleteDisk(DiskManagement::ATADisk& disk, AnyDeleteOperation<DiskManagement::ATADisk, OperationStage>::Callback callback) const override;
+            void deleteDisk(DiskManagement::NVMeDisk& disk, AnyDeleteOperation<DiskManagement::NVMeDisk, OperationStage>::Callback callback) const override;
         };
+    }
 
-    } // namespace ATADisk
+    namespace SecureErase {
 
-    namespace NVMeDisk {
-
-        enum class Stage {
+        enum class OperationStage {
             ERASURE,
         };
 
-        class DeleteOperation : public AnyDeleteOperation<DiskManagement::NVMeDisk, Stage> {
+        class Operation : public AnyDeleteOperation<DiskManagement::ATADisk, OperationStage>, public AnyDeleteOperation<DiskManagement::NVMeDisk, OperationStage> {
+        public:
+            void deleteDisk(DiskManagement::ATADisk& disk, AnyDeleteOperation<DiskManagement::ATADisk, OperationStage>::Callback callback) const override;
+            void deleteDisk(DiskManagement::NVMeDisk& disk, AnyDeleteOperation<DiskManagement::NVMeDisk, OperationStage>::Callback callback) const override;
+        };
+    }
+
+    namespace EnhancedSecureErase {
+
+        enum class OperationStage {
+            ERASURE
         };
 
-    } // namespace NVMeDisk
+        class Operation : public AnyDeleteOperation<DiskManagement::ATADisk, OperationStage>, public AnyDeleteOperation<DiskManagement::NVMeDisk, OperationStage> {
+        public:
+            void deleteDisk(DiskManagement::ATADisk& disk, AnyDeleteOperation<DiskManagement::ATADisk, OperationStage>::Callback callback) const override;
+            void deleteDisk(DiskManagement::NVMeDisk& disk, AnyDeleteOperation<DiskManagement::NVMeDisk, OperationStage>::Callback callback) const override;
+        };
+    }
 
-    class SecureErase : public ATADisk::DeleteOperation, public NVMeDisk::DeleteOperation {
-    public:
-        void deleteDisk(DiskManagement::ATADisk& disk, ATADisk::DeleteOperation::Callback callback) const override;
-        void deleteDisk(DiskManagement::NVMeDisk& disk, NVMeDisk::DeleteOperation::Callback callback) const override;
-    };
+    namespace GutmannMethod {
 
-    class GutmannMethod : public ATADisk::DeleteOperation, public NVMeDisk::DeleteOperation {
-    public:
-        void deleteDisk(DiskManagement::ATADisk& disk, ATADisk::DeleteOperation::Callback callback) const override;
-        void deleteDisk(DiskManagement::NVMeDisk& disk, NVMeDisk::DeleteOperation::Callback callback) const override;
-    };
+        enum class OperationStage {
+            ERASURE
+        };
 
-    extern const SecureErase& SECURE_ERASE_METHOD;
-    extern const GutmannMethod& GUTMANN_METHOD;
-
+        class Operation : public AnyDeleteOperation<DiskManagement::ATADisk, OperationStage>, public AnyDeleteOperation<DiskManagement::NVMeDisk, OperationStage> {
+        public:
+            void deleteDisk(DiskManagement::ATADisk& disk, AnyDeleteOperation<DiskManagement::ATADisk, OperationStage>::Callback callback) const override;
+            void deleteDisk(DiskManagement::NVMeDisk& disk, AnyDeleteOperation<DiskManagement::NVMeDisk, OperationStage>::Callback callback) const override;
+        };
+    }
 }
 
 #endif // DISK_OPERATIONS_H

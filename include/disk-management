@@ -100,11 +100,15 @@ namespace DiskManagement {
         SanitizationStatus deleteDiskWithStatus(NVMeDisk& disk) const;
     };
 
-    extern const NISTClear& NIST_CLEAR_METHOD;
-    extern const NISTPurge& NIST_PURGE_METHOD;
+    extern const DiskOperations::NIST_800_88::Operation& NIST_800_88;
+    
+    extern const DiskOperations::SecureErase::Operation& SECURE_ERASE;
+
+    extern const DiskOperations::GutmannMethod::Operation& GUTMANN_METHOD;
+
+    extern const DiskOperations::EnhancedSecureErase::Operation& ENHANCED_SECURE_ERASE;
 
     std::vector<std::unique_ptr<Disk>> fetchDisks();
-
 }
 
 #endif // DISK_MANAGEMENT_H

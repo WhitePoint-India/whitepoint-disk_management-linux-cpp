@@ -4,7 +4,7 @@
 
 namespace DiskOperations {
 
-    namespace GutmannMethod {
+    namespace NIST_800_88 {
 
         void Operation::deleteDisk(DiskManagement::ATADisk& disk, AnyDeleteOperation<DiskManagement::ATADisk, OperationStage>::Callback callback) const {
             for (int i = 0; i <= 100; i++) {

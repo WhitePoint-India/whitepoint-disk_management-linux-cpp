@@ -14,13 +14,27 @@ void status(const char* args) {
 }
 
 namespace {
-const DiskManagement::NISTClear nistClearInstance;
-const DiskManagement::NISTPurge nistPurgeInstance;
+
+const DiskOperations::SecureErase::Operation secureEraseOperationInstance;
+
+const DiskOperations::NIST_800_88::Operation NIST_800_88_OperationInstance;
+
+const DiskOperations::GutmannMethod::Operation gutmannMethodOperationInstance;
+
+const DiskOperations::EnhancedSecureErase::Operation enhancedSecureEraseOperationInstance;
 
 }
 
-const DiskManagement::NISTClear& DiskManagement::NIST_CLEAR_METHOD = nistClearInstance;
-const DiskManagement::NISTPurge& DiskManagement::NIST_PURGE_METHOD = nistPurgeInstance;
+
+
+const DiskOperations::SecureErase::Operation& DiskManagement::SECURE_ERASE = secureEraseOperationInstance;
+
+const DiskOperations::NIST_800_88::Operation& DiskManagement::NIST_800_88 = NIST_800_88_OperationInstance;
+
+const DiskOperations::GutmannMethod::Operation& DiskManagement::GUTMANN_METHOD = gutmannMethodOperationInstance;
+
+const DiskOperations::EnhancedSecureErase::Operation& DiskManagement::ENHANCED_SECURE_ERASE = enhancedSecureEraseOperationInstance;
+
 
 namespace {
 

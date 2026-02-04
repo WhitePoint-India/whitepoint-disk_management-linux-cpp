@@ -63,13 +63,14 @@ add_library(disk-management STATIC
     src/secure-erase.cpp
     src/gutmann-method.cpp
     src/disk-management.cpp
-    src/disk-operations.cpp
     # NIST 800-88 Implementation
     src/command-executor.cpp
     src/audit-logger.cpp
     src/disk-verifier.cpp
     src/nist-clear.cpp
     src/nist-purge.cpp
+    src/nist-800-88.cpp
+    src/enhanced-secure-erase.cpp
 )
 
 # Configure include directories
