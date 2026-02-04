@@ -1,127 +1,13 @@
 #ifndef DISK_MANAGEMENT_H
 #define DISK_MANAGEMENT_H
 
-#include <vector>
-#include <string>
-#include <memory>
+#include <disks>
 #include <optional>
 #include <utility>
+#include <disk-operations>
 #include <nlohmann/json.hpp>
 
 namespace DiskManagement {
-
-    class Disk {
-    public:
-        std::string serial;
-        std::string model;
-        std::string path;
-        std::string description;
-        unsigned long long size;
-        int sectorSize;
-
-        Disk(
-            const std::string& serial,
-            const std::string& model,
-            const std::string& path,
-            const std::string& description,
-            unsigned long long size,
-            int sectorSize
-        );
-
-        virtual ~Disk() = default;
-
-        unsigned long long getSectorCount() const;
-    };
-
-    class ATADisk: public Disk {
-    public:
-        enum DiskState {
-            READY,
-            FROZEN
-        };
-
-        class ATADiskDeleteMethod {
-        public:
-            virtual void deleteDisk(class ATADisk& disk) const = 0;
-        };
-
-        DiskState state;
-
-        ATADisk(
-            const std::string& serial,
-            const std::string& model,
-            const std::string& path,
-            const std::string& description,
-            unsigned long long size,
-            int sectorSize,
-            DiskState state
-        );
-
-        bool isFrozen();
-        void unfreeze();
-
-        void deleteDisk(const ATADiskDeleteMethod& method);
-        void deleteDisk();
-    };
-
-    class NVMeDisk: public Disk {
-    public:
-
-        class NVMeDiskDeleteMethod {
-        public:
-            virtual void deleteDisk(class NVMeDisk& disk) const = 0;
-        };
-
-        NVMeDisk(
-            const std::string& serial,
-            const std::string& model,
-            const std::string& path,
-            const std::string& description,
-            unsigned long long size,
-            int sectorSize
-        );
-
-        /// @brief deleteDisk() is used to delete NVMeDisk using a proper NVMeDiskDeleteMethod
-        /// @param method is an object of type NVMeDiskDeleteMthod
-        void deleteDisk(const NVMeDiskDeleteMethod& method);
-
-        void deleteDisk();
-    };
-
-    class USBDisk: public Disk {
-    public:
-        class USBDiskDeleteMethod {
-            virtual void deleteDisk(class NVMeDisk& disk) const = 0;
-        };
-
-        USBDisk(
-            const std::string& serial,
-            const std::string& model,
-            const std::string& path,
-            const std::string& description,
-            unsigned long long size,
-            int sectorSize
-        );
-    };
-
-
-    class SecureErase : public ATADisk::ATADiskDeleteMethod, public NVMeDisk::NVMeDiskDeleteMethod {
-    public:
-        void deleteDisk(ATADisk& disk) const override;
-
-        void deleteDisk(NVMeDisk& disk) const override;
-    };
-
-    class GutmannMethod : public ATADisk::ATADiskDeleteMethod, public NVMeDisk::NVMeDiskDeleteMethod {
-    public:
-        void deleteDisk(ATADisk& disk) const override;
-
-        void deleteDisk(NVMeDisk& disk) const override;
-    };
-
-    // =========================================================================
-    // NIST 800-88 Support Classes and Types
-    // =========================================================================
 
     enum class SanitizationResult {
         SUCCESS,
@@ -160,15 +46,11 @@ namespace DiskManagement {
         static bool checkDiskFrozen(const std::string& diskPath);
     };
 
-    // =========================================================================
-    // NIST 800-88 Verification System
-    // =========================================================================
-
     enum class VerificationLevel {
-        NONE,                // No verification
-        SAMPLING,           // Random 10% sector sampling
-        FULL,               // Full sequential read-back
-        DEVICE_LOG          // Check device sanitize log (NVMe only)
+        NONE,
+        SAMPLING,
+        FULL,
+        DEVICE_LOG
     };
 
     struct VerificationResult {
@@ -189,7 +71,7 @@ namespace DiskManagement {
         void logCompletion(const std::string& status);
         std::string finalize();
 
-        nlohmann::json logData;  // Public for direct access from NIST implementations
+        nlohmann::json logData;
     private:
         std::string logId;
         static std::string getCurrentTimestamp();
@@ -199,48 +81,30 @@ namespace DiskManagement {
 
     class DiskVerifier {
     public:
-        // Verify ATA disk erasure
         static VerificationResult verifyATADisk(const ATADisk& disk, VerificationLevel level);
-
-        // Verify NVMe disk erasure
         static VerificationResult verifyNVMeDisk(const NVMeDisk& disk, VerificationLevel level);
-
-        // Sampling verification (reads random 10% of sectors)
         static VerificationResult verifySampling(const Disk& disk, double samplePercent = 0.10);
-
-        // Full verification (reads all sectors sequentially)
         static VerificationResult verifyFull(const Disk& disk);
-
-        // Check NVMe sanitize log for completion status
         static VerificationResult checkNVMeSanitizeLog(const std::string& devicePath);
     };
 
-    // =========================================================================
-    // NIST 800-88 Sanitization Methods (Government/DoD Compliance)
-    // =========================================================================
-
-    class NISTClear : public ATADisk::ATADiskDeleteMethod, public NVMeDisk::NVMeDiskDeleteMethod {
+    class NISTClear {
     public:
-        void deleteDisk(ATADisk& disk) const override;
-        void deleteDisk(NVMeDisk& disk) const override;
         SanitizationStatus deleteDiskWithStatus(ATADisk& disk) const;
         SanitizationStatus deleteDiskWithStatus(NVMeDisk& disk) const;
     };
 
-    class NISTPurge : public ATADisk::ATADiskDeleteMethod, public NVMeDisk::NVMeDiskDeleteMethod {
+    class NISTPurge {
     public:
-        void deleteDisk(ATADisk& disk) const override;
-        void deleteDisk(NVMeDisk& disk) const override;
         SanitizationStatus deleteDiskWithStatus(ATADisk& disk) const;
         SanitizationStatus deleteDiskWithStatus(NVMeDisk& disk) const;
     };
 
-    extern const SecureErase& SECURE_ERASE_METHOD;
-    extern const GutmannMethod& GUTMANN_METHOD;
     extern const NISTClear& NIST_CLEAR_METHOD;
     extern const NISTPurge& NIST_PURGE_METHOD;
 
     std::vector<std::unique_ptr<Disk>> fetchDisks();
+
 }
 
 #endif // DISK_MANAGEMENT_H

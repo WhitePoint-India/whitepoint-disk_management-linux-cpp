@@ -2,6 +2,9 @@
 cmake_minimum_required(VERSION 3.11)
 project(disk-management VERSION 2.0.0 LANGUAGES CXX)
 
+# Export compile commands for IDE IntelliSense (VSCode, clangd, etc.)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # =============================================================================
 # FetchContent - nlohmann/json for NIST 800-88 Audit Logging
 # =============================================================================
@@ -60,6 +63,7 @@ add_library(disk-management STATIC
     src/secure-erase.cpp
     src/gutmann-method.cpp
     src/disk-management.cpp
+    src/disk-operations.cpp
     # NIST 800-88 Implementation
     src/command-executor.cpp
     src/audit-logger.cpp

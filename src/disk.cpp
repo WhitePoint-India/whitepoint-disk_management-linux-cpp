@@ -50,14 +50,6 @@ void DiskManagement::ATADisk::unfreeze() {
     }
 }
 
-void DiskManagement::ATADisk::deleteDisk(const ATADiskDeleteMethod& method) {
-    method.deleteDisk(*this);
-}
-
-void DiskManagement::ATADisk::deleteDisk() {
-    SECURE_ERASE_METHOD.deleteDisk(*this);
-}
-
 DiskManagement::NVMeDisk::NVMeDisk(
     const std::string& serial,
     const std::string& model,
@@ -73,14 +65,6 @@ DiskManagement::NVMeDisk::NVMeDisk(
         size,
         sectorSize
     ) {
-}
-
-void DiskManagement::NVMeDisk::deleteDisk(const NVMeDiskDeleteMethod& method) {
-    method.deleteDisk(*this);
-}
-
-void DiskManagement::NVMeDisk::deleteDisk() {
-    SECURE_ERASE_METHOD.deleteDisk(*this);
 }
 
 DiskManagement::USBDisk::USBDisk(

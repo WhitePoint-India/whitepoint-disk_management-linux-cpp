@@ -1,0 +1,92 @@
+#ifndef DISK_OPERATIONS_H
+#define DISK_OPERATIONS_H
+
+#include <disks>
+#include <concepts>
+#include <functional>
+
+namespace DiskOperations {
+
+    class Progress {
+    private:
+        unsigned long long totalBytes;
+        unsigned long long bytesProcessed;
+    public:
+        Progress(
+            unsigned long long bytesProcessed,
+            unsigned long long totalBytes
+        ) : totalBytes(totalBytes), bytesProcessed(bytesProcessed) {
+        }
+
+        double fractionCompleted() const {
+            if (totalBytes == 0) {
+                return 0;
+            }
+            return static_cast<double>(bytesProcessed) / static_cast<double>(totalBytes);
+        }
+
+        double percentageCompleted() const {
+            return fractionCompleted() * 100;
+        }
+    };
+
+    template <typename T>
+    concept DiskType = std::derived_from<T, DiskManagement::Disk>;
+
+    template <DiskType Disk, typename Stage>
+    class AnyDeleteOperation {
+    public:
+        virtual ~AnyDeleteOperation() = default;
+
+        using Callback = std::function<void(Stage, const Progress&)>;
+
+        virtual void deleteDisk(Disk& disk, Callback callback) const = 0;
+    };
+
+    namespace ATADisk {
+
+        enum class Stage {
+            DISK_FREEZE_CHECK,
+            HPA_AVAILABILITY_CHECK,
+            HPA_REMOVAL,
+            DCO_AVAILABILITY_CHECK,
+            DCO_REMOVAL,
+            SETTING_PASSWORD,
+            ERASURE,
+            VERIFICATION
+        };
+
+        class DeleteOperation : public AnyDeleteOperation<DiskManagement::ATADisk, Stage> {
+        };
+
+    } // namespace ATADisk
+
+    namespace NVMeDisk {
+
+        enum class Stage {
+            ERASURE,
+        };
+
+        class DeleteOperation : public AnyDeleteOperation<DiskManagement::NVMeDisk, Stage> {
+        };
+
+    } // namespace NVMeDisk
+
+    class SecureErase : public ATADisk::DeleteOperation, public NVMeDisk::DeleteOperation {
+    public:
+        void deleteDisk(DiskManagement::ATADisk& disk, ATADisk::DeleteOperation::Callback callback) const override;
+        void deleteDisk(DiskManagement::NVMeDisk& disk, NVMeDisk::DeleteOperation::Callback callback) const override;
+    };
+
+    class GutmannMethod : public ATADisk::DeleteOperation, public NVMeDisk::DeleteOperation {
+    public:
+        void deleteDisk(DiskManagement::ATADisk& disk, ATADisk::DeleteOperation::Callback callback) const override;
+        void deleteDisk(DiskManagement::NVMeDisk& disk, NVMeDisk::DeleteOperation::Callback callback) const override;
+    };
+
+    extern const SecureErase& SECURE_ERASE_METHOD;
+    extern const GutmannMethod& GUTMANN_METHOD;
+
+}
+
+#endif // DISK_OPERATIONS_H
