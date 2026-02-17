@@ -15,26 +15,12 @@ void status(const char* args) {
 
 namespace {
 
-const DiskOperations::SecureErase::Operation secureEraseOperationInstance;
 
-const DiskOperations::NIST_800_88::Operation NIST_800_88_OperationInstance;
-
-const DiskOperations::GutmannMethod::Operation gutmannMethodOperationInstance;
-
-const DiskOperations::EnhancedSecureErase::Operation enhancedSecureEraseOperationInstance;
+const NIST_800_88_Clear::DeleteOperation NIST_800_88_Clear_Instance;
 
 }
 
-
-
-const DiskOperations::SecureErase::Operation& DiskManagement::SECURE_ERASE = secureEraseOperationInstance;
-
-const DiskOperations::NIST_800_88::Operation& DiskManagement::NIST_800_88 = NIST_800_88_OperationInstance;
-
-const DiskOperations::GutmannMethod::Operation& DiskManagement::GUTMANN_METHOD = gutmannMethodOperationInstance;
-
-const DiskOperations::EnhancedSecureErase::Operation& DiskManagement::ENHANCED_SECURE_ERASE = enhancedSecureEraseOperationInstance;
-
+const NIST_800_88_Clear::DeleteOperation& DiskManagement::NIST_800_88_CLEAR = NIST_800_88_Clear_Instance;
 
 namespace {
 
@@ -101,8 +87,7 @@ void fetchDisksRecursively(hwNode* node, hwNode* parent, std::vector<std::unique
                     node->getLogicalName(),
                     node->getDescription(),
                     node->getSize(),
-                    sectorSize,
-                    DiskManagement::ATADisk::DiskState::READY
+                    sectorSize
                 );
                 return disks.push_back(std::move(disk));
             }

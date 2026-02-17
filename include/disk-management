@@ -1,112 +1,15 @@
 #ifndef DISK_MANAGEMENT_H
 #define DISK_MANAGEMENT_H
 
-#include <disks>
+#include <memory>
 #include <optional>
 #include <utility>
-#include <disk-operations>
-#include <nlohmann/json.hpp>
+#include <disks.hpp>
+#include <NIST_800_88_clear.hpp>
 
 namespace DiskManagement {
 
-    enum class SanitizationResult {
-        SUCCESS,
-        DISK_FROZEN,
-        HPA_DETECTION_FAILED,
-        HPA_REMOVAL_FAILED,
-        DCO_DETECTION_FAILED,
-        DCO_REMOVAL_FAILED,
-        SANITIZE_COMMAND_FAILED,
-        DISK_NOT_SUPPORTED,
-        PERMISSION_DENIED,
-        TIMEOUT,
-        LOG_WRITE_FAILED
-    };
-
-    struct SanitizationStatus {
-        SanitizationResult result;
-        std::string message;
-        std::optional<std::string> logId;
-    };
-
-    class CommandExecutor {
-    public:
-        struct CommandResult {
-            int exitCode;
-            std::string stdout;
-            std::string stderr;
-            bool success;
-        };
-
-        static CommandResult execute(const std::string& command, int timeoutSeconds = 0);
-        static std::pair<bool, unsigned long long> detectHPA(const std::string& diskPath);
-        static bool detectDCO(const std::string& diskPath);
-        static bool removeHPA(const std::string& diskPath, unsigned long long maxSectors);
-        static bool removeDCO(const std::string& diskPath);
-        static bool checkDiskFrozen(const std::string& diskPath);
-    };
-
-    enum class VerificationLevel {
-        NONE,
-        SAMPLING,
-        FULL,
-        DEVICE_LOG
-    };
-
-    struct VerificationResult {
-        bool passed;
-        VerificationLevel level;
-        std::string message;
-        unsigned long long sectorsVerified;
-        unsigned long long sectorsTotal;
-    };
-
-    class AuditLogger {
-    public:
-        explicit AuditLogger(const Disk& disk, const std::string& method);
-        void logHPAStatus(bool detected, bool removed, unsigned long long hiddenSectors = 0);
-        void logDCOStatus(bool detected, bool removed);
-        void logCommandExecution(const std::string& command, const CommandExecutor::CommandResult& result);
-        void logVerification(const VerificationResult& result);
-        void logCompletion(const std::string& status);
-        std::string finalize();
-
-        nlohmann::json logData;
-    private:
-        std::string logId;
-        static std::string getCurrentTimestamp();
-        static std::string getHostname();
-        static std::string getOperator();
-    };
-
-    class DiskVerifier {
-    public:
-        static VerificationResult verifyATADisk(const ATADisk& disk, VerificationLevel level);
-        static VerificationResult verifyNVMeDisk(const NVMeDisk& disk, VerificationLevel level);
-        static VerificationResult verifySampling(const Disk& disk, double samplePercent = 0.10);
-        static VerificationResult verifyFull(const Disk& disk);
-        static VerificationResult checkNVMeSanitizeLog(const std::string& devicePath);
-    };
-
-    class NISTClear {
-    public:
-        SanitizationStatus deleteDiskWithStatus(ATADisk& disk) const;
-        SanitizationStatus deleteDiskWithStatus(NVMeDisk& disk) const;
-    };
-
-    class NISTPurge {
-    public:
-        SanitizationStatus deleteDiskWithStatus(ATADisk& disk) const;
-        SanitizationStatus deleteDiskWithStatus(NVMeDisk& disk) const;
-    };
-
-    extern const DiskOperations::NIST_800_88::Operation& NIST_800_88;
-    
-    extern const DiskOperations::SecureErase::Operation& SECURE_ERASE;
-
-    extern const DiskOperations::GutmannMethod::Operation& GUTMANN_METHOD;
-
-    extern const DiskOperations::EnhancedSecureErase::Operation& ENHANCED_SECURE_ERASE;
+    extern const NIST_800_88_Clear::DeleteOperation& NIST_800_88_CLEAR;
 
     std::vector<std::unique_ptr<Disk>> fetchDisks();
 }
