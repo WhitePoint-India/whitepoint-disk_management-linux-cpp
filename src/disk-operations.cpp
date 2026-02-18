@@ -58,6 +58,14 @@ void Writable::writeToDisk(DiskManagement::Disk& disk, int diskFD, void* buffer,
         blocksSinceRefill++;
         callback(Progress(bytesWritten, disk.size));
     }
+
+    // Flush data to physical media before verification can begin.
+    // O_DIRECT bypasses the OS page cache but does NOT guarantee data has
+    // passed through the drive's internal volatile write cache.
+    if (fdatasync(diskFD) < 0) {
+        int err = errno;
+        throw std::runtime_error("fdatasync failed on " + disk.path + ": " + strerror(err));
+    }
 }
 
 void Writable::writeBytes(DiskManagement::Disk& disk, void* buffer, Callback callback) {

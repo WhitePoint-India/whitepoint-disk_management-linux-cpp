@@ -8,11 +8,8 @@ namespace DiskManagement {
 
 class Deletable {
 public:
-
-    using Callback = std::function<void(const double)>;
-
-    template <typename Self, typename DeleteOperation>
-    void deleteDisk(this Self& self, const DeleteOperation& operation, Callback callback);
+    template <typename Self, typename DeleteOperation, typename Delegate>
+    void deleteDisk(this Self& self, const DeleteOperation& operation, Delegate& delegate);
 };
 
 template <typename Stage>
@@ -48,12 +45,12 @@ public:
     );
 };
 
-template <typename Stage>
-class ATADiskDeleteOperation : public AnyDeleteOperation<ATADisk, Stage> {
+template <typename Delegate>
+class ATADiskDeleteOperation : public AnyDeleteOperation<ATADisk, Delegate> {
 };
 
-template <typename Stage>
-class NVMeDiskDeleteOperation : public AnyDeleteOperation<NVMeDisk, Stage> {
+template <typename Delegate>
+class NVMeDiskDeleteOperation : public AnyDeleteOperation<NVMeDisk, Delegate> {
 };
 
 class USBDisk : public Disk {

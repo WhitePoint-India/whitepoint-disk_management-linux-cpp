@@ -51,6 +51,7 @@ add_library(disk-management STATIC
     src/disk-management.cpp
     src/NIST_800_88_clear.cpp
     src/disk-operations.cpp
+    src/disk-verifier.cpp
 )
 
 # Configure include directories

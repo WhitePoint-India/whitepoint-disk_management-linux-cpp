@@ -1,7 +1,6 @@
 #ifndef DISK_OPERATIONS_H
 #define DISK_OPERATIONS_H
 
-#include <concepts>
 #include <disk.hpp>
 #include <functional>
 
@@ -29,16 +28,11 @@ public:
     }
 };
 
-template <typename Disk, typename Stage>
+template <typename Disk, typename Delegate>
 class AnyDeleteOperation {
 public:
     virtual ~AnyDeleteOperation() = default;
-
-    using DiskType = Disk;
-    using StageCallback = std::function<void(Stage)>;
-    using ProgressCallback = std::function<void(Stage, const Progress&)>;
-
-    virtual void deleteDisk(Disk& disk, StageCallback onStage, ProgressCallback onProgress) const = 0;
+    virtual void deleteDisk(Disk& disk, Delegate& delegate) const = 0;
 };
 
 class Writable {
