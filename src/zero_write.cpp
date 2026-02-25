@@ -24,29 +24,19 @@ const std::vector<Stage>& ZeroWrite::getStages() const {
     return stages;
 }
 
-void ZeroWrite::deleteDisk(Disks::ATADisk& disk, DiskDeleteMethod::Delegate& delegate) {
-    auto stages = getStages();
+void ZeroWrite::execute(Disk& disk, DiskDeleteMethod::Delegate& delegate) {
+    const auto& stages = getStages();
 
     delegate.onStageStarted(stages[0]);
-
-    unsigned long long totalBytes = disk.getSize();
-    unsigned long long bytesWritten = 0;
-    unsigned long long chunkSize = 1024 * 1024; // 1MB
-
-    while (bytesWritten < totalBytes) {
-        if (delegate.shouldCancel()) { return; }
-
-        unsigned long long remaining = totalBytes - bytesWritten;
-        unsigned long long writeSize = remaining < chunkSize ? remaining : chunkSize;
-
-        // TODO: actual write zeros to disk via dd or direct I/O
-        bytesWritten += writeSize;
-
-        delegate.onProgress(stages[0], {bytesWritten, totalBytes});
-    }
-
+    write(disk, Method::x0, [&](const Progress& progress) {
+        delegate.onProgress(stages[0], progress);
+    });
     delegate.onStageCompleted(stages[0]);
     delegate.onCompleted();
 }
+
+void ZeroWrite::deleteDisk(Disks::ATADisk& disk, DiskDeleteMethod::Delegate& delegate) { execute(disk, delegate); }
+void ZeroWrite::deleteDisk(Disks::NVMeDisk& disk, DiskDeleteMethod::Delegate& delegate) { execute(disk, delegate); }
+void ZeroWrite::deleteDisk(Disks::USBDisk& disk, DiskDeleteMethod::Delegate& delegate) { execute(disk, delegate); }
 
 } // namespace DiskManagement

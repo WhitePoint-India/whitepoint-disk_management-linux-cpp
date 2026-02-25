@@ -6,7 +6,7 @@
 
 namespace DiskManagement {
 
-class NIST80088Clear: public SingletonMethod<NIST80088Clear> {
+class NIST80088Clear: public SingletonMethod<NIST80088Clear>, private Writable, private Verifiable {
     friend class SingletonMethod<NIST80088Clear>;
     NIST80088Clear();
 public:
@@ -17,6 +17,10 @@ public:
 
     void deleteDisk(Disks::ATADisk& disk, DiskDeleteMethod::Delegate& delegate) override;
     void deleteDisk(Disks::NVMeDisk& disk, DiskDeleteMethod::Delegate& delegate) override;
+    void deleteDisk(Disks::USBDisk& disk, DiskDeleteMethod::Delegate& delegate) override;
+
+private:
+    void execute(Disk& disk, DiskDeleteMethod::Delegate& delegate);
 };
 
 } // namespace DiskManagement

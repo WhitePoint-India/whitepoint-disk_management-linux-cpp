@@ -30,4 +30,37 @@ const std::vector<Stage>& DoD522028M::getStages() const {
     return stages;
 }
 
+void DoD522028M::execute(Disk& disk, DiskDeleteMethod::Delegate& delegate) {
+    const auto& stages = getStages();
+
+    constexpr Method writePasses[] = {
+        Method::x0, Method::xFF, Method::RANDOM,
+        Method::x0, Method::xFF, Method::RANDOM
+    };
+
+    for (int i = 0; i < 6; ++i) {
+        if (delegate.shouldCancel()) return;
+
+        delegate.onStageStarted(stages[i]);
+        write(disk, writePasses[i], [&](const Progress& progress) {
+            delegate.onProgress(stages[i], progress);
+        });
+        delegate.onStageCompleted(stages[i]);
+    }
+
+    if (delegate.shouldCancel()) return;
+
+    // Stage 7: Verification (read-through after final random pass)
+    delegate.onStageStarted(stages[6]);
+    verifyFull(disk, [&](const Progress& progress) {
+        delegate.onProgress(stages[6], progress);
+    });
+    delegate.onStageCompleted(stages[6]);
+    delegate.onCompleted();
+}
+
+void DoD522028M::deleteDisk(Disks::ATADisk& disk, DiskDeleteMethod::Delegate& delegate) { execute(disk, delegate); }
+void DoD522028M::deleteDisk(Disks::NVMeDisk& disk, DiskDeleteMethod::Delegate& delegate) { execute(disk, delegate); }
+void DoD522028M::deleteDisk(Disks::USBDisk& disk, DiskDeleteMethod::Delegate& delegate) { execute(disk, delegate); }
+
 } // namespace DiskManagement

@@ -5,7 +5,9 @@
 #include <string>
 #include <string_view>
 #include <vector>
+#include <span>
 #include <disks.hpp>
+#include <functional>
 
 namespace DiskManagement {
 
@@ -26,6 +28,44 @@ public:
     [[nodiscard]] unsigned long long totalBytes() const;
     [[nodiscard]] double fractionCompleted() const;
     [[nodiscard]] double percentageCompleted() const;
+};
+
+class Writable {
+
+public:
+    enum class Method {
+        xFF,
+        x0,
+        RANDOM
+    };
+
+    using Callback = std::function<void(const Progress&)>;
+
+    void write(Disk& disk, Method method, Callback callback) const;
+    void write(Disk& disk, std::span<const unsigned char> pattern, Callback callback) const;
+
+private:
+    static void fillPattern(void* buffer, size_t bufferSize, std::span<const unsigned char> pattern);
+    static void randomize(void* buffer, int urandom);
+    static void writeToDisk(Disk& disk, int diskFD, void* buffer, Callback callback, std::function<void(void*, size_t)> refill);
+    static void writeBytes(Disk& disk, void* buffer, Callback callback);
+    static void writeRandomBytes(Disk& disk, void* buffer, Callback callback);
+};
+
+struct VerificationResult {
+    unsigned long long sectorsVerified;
+    unsigned long long sectorsTotal;
+    unsigned long long nonZeroSectors;
+    double samplingPercentage;
+    bool passed;
+};
+
+class Verifiable {
+public:
+    using Callback = std::function<void(const Progress&)>;
+
+    VerificationResult verifySampling(const Disk& disk, double samplingPercentage, double passThreshold, Callback callback) const;
+    VerificationResult verifyFull(const Disk& disk, Callback callback) const;
 };
 
 class DiskDeleteMethod {

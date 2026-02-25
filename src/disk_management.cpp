@@ -119,7 +119,9 @@ void fetchDisksRecursively(hwNode* node, hwNode* parent, std::vector<DiskVariant
 
 } // anonymous namespace
 
-std::vector<DiskVariant> DiskManagement::fetchDisks() {
+namespace DiskManagement {
+
+std::vector<DiskVariant> fetchDisks() {
 
     // Create a hwNode to scan the system
     hwNode system("computer");
@@ -134,21 +136,23 @@ std::vector<DiskVariant> DiskManagement::fetchDisks() {
     return disks;
 }
 
-const std::vector<DiskManagement::DiskDeleteMethod*> DiskManagement::methods = {
-    &DiskManagement::ZeroWrite::shared(),
-    &DiskManagement::RandomWrite::shared(),
-    &DiskManagement::RandomZeroWrite::shared(),
-    &DiskManagement::NIST80088Clear::shared(),
-    &DiskManagement::NIST80088Purge::shared(),
-    &DiskManagement::DoD522028M::shared(),
-    &DiskManagement::DoD522022M::shared(),
-    &DiskManagement::AFSSI5020::shared(),
-    &DiskManagement::NAVSOP523926MFM::shared(),
-    &DiskManagement::NAVSOP523926RLL::shared(),
-    &DiskManagement::NSALegacy::shared(),
-    &DiskManagement::NSAModern::shared(),
-    &DiskManagement::BSIVSITR::shared(),
-    &DiskManagement::Gutmann::shared(),
-    &DiskManagement::SecureErase::shared(),
-    &DiskManagement::EnhancedSecureErase::shared()
+const std::vector<DiskDeleteMethod*> methods = {
+    &ZeroWrite::shared(),
+    &RandomWrite::shared(),
+    &RandomZeroWrite::shared(),
+    &NIST80088Clear::shared(),
+    &NIST80088Purge::shared(),
+    &DoD522028M::shared(),
+    &DoD522022M::shared(),
+    &AFSSI5020::shared(),
+    &NAVSOP523926MFM::shared(),
+    &NAVSOP523926RLL::shared(),
+    &NSALegacy::shared(),
+    &NSAModern::shared(),
+    &BSIVSITR::shared(),
+    &Gutmann::shared(),
+    &SecureErase::shared(),
+    &EnhancedSecureErase::shared()
 };
+
+} // namespace DiskManagement

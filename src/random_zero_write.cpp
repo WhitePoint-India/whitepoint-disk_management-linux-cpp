@@ -25,4 +25,27 @@ const std::vector<Stage>& RandomZeroWrite::getStages() const {
     return stages;
 }
 
+void RandomZeroWrite::execute(Disk& disk, DiskDeleteMethod::Delegate& delegate) {
+    const auto& stages = getStages();
+
+    delegate.onStageStarted(stages[0]);
+    write(disk, Method::RANDOM, [&](const Progress& progress) {
+        delegate.onProgress(stages[0], progress);
+    });
+    delegate.onStageCompleted(stages[0]);
+
+    if (delegate.shouldCancel()) return;
+
+    delegate.onStageStarted(stages[1]);
+    write(disk, Method::x0, [&](const Progress& progress) {
+        delegate.onProgress(stages[1], progress);
+    });
+    delegate.onStageCompleted(stages[1]);
+    delegate.onCompleted();
+}
+
+void RandomZeroWrite::deleteDisk(Disks::ATADisk& disk, DiskDeleteMethod::Delegate& delegate) { execute(disk, delegate); }
+void RandomZeroWrite::deleteDisk(Disks::NVMeDisk& disk, DiskDeleteMethod::Delegate& delegate) { execute(disk, delegate); }
+void RandomZeroWrite::deleteDisk(Disks::USBDisk& disk, DiskDeleteMethod::Delegate& delegate) { execute(disk, delegate); }
+
 } // namespace DiskManagement

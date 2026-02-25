@@ -26,4 +26,35 @@ const std::vector<Stage>& AFSSI5020::getStages() const {
     return stages;
 }
 
+void AFSSI5020::execute(Disk& disk, DiskDeleteMethod::Delegate& delegate) {
+    const auto& stages = getStages();
+
+    delegate.onStageStarted(stages[0]);
+    write(disk, Method::x0, [&](const Progress& progress) {
+        delegate.onProgress(stages[0], progress);
+    });
+    delegate.onStageCompleted(stages[0]);
+
+    if (delegate.shouldCancel()) return;
+
+    delegate.onStageStarted(stages[1]);
+    write(disk, Method::xFF, [&](const Progress& progress) {
+        delegate.onProgress(stages[1], progress);
+    });
+    delegate.onStageCompleted(stages[1]);
+
+    if (delegate.shouldCancel()) return;
+
+    delegate.onStageStarted(stages[2]);
+    write(disk, Method::RANDOM, [&](const Progress& progress) {
+        delegate.onProgress(stages[2], progress);
+    });
+    delegate.onStageCompleted(stages[2]);
+    delegate.onCompleted();
+}
+
+void AFSSI5020::deleteDisk(Disks::ATADisk& disk, DiskDeleteMethod::Delegate& delegate) { execute(disk, delegate); }
+void AFSSI5020::deleteDisk(Disks::NVMeDisk& disk, DiskDeleteMethod::Delegate& delegate) { execute(disk, delegate); }
+void AFSSI5020::deleteDisk(Disks::USBDisk& disk, DiskDeleteMethod::Delegate& delegate) { execute(disk, delegate); }
+
 } // namespace DiskManagement

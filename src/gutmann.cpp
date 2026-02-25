@@ -58,4 +58,79 @@ const std::vector<Stage>& Gutmann::getStages() const {
     return stages;
 }
 
+void Gutmann::execute(Disk& disk, DiskDeleteMethod::Delegate& delegate) {
+    const auto& stages = getStages();
+
+    // Gutmann 35-pass patterns (passes 5-31 are fixed 3-byte patterns)
+    static constexpr unsigned char patterns[][3] = {
+        {0x55, 0x55, 0x55}, // Pass 5
+        {0xAA, 0xAA, 0xAA}, // Pass 6
+        {0x92, 0x49, 0x24}, // Pass 7
+        {0x49, 0x24, 0x92}, // Pass 8
+        {0x24, 0x92, 0x49}, // Pass 9
+        {0x00, 0x00, 0x00}, // Pass 10
+        {0x11, 0x11, 0x11}, // Pass 11
+        {0x22, 0x22, 0x22}, // Pass 12
+        {0x33, 0x33, 0x33}, // Pass 13
+        {0x44, 0x44, 0x44}, // Pass 14
+        {0x55, 0x55, 0x55}, // Pass 15
+        {0x66, 0x66, 0x66}, // Pass 16
+        {0x77, 0x77, 0x77}, // Pass 17
+        {0x88, 0x88, 0x88}, // Pass 18
+        {0x99, 0x99, 0x99}, // Pass 19
+        {0xAA, 0xAA, 0xAA}, // Pass 20
+        {0xBB, 0xBB, 0xBB}, // Pass 21
+        {0xCC, 0xCC, 0xCC}, // Pass 22
+        {0xDD, 0xDD, 0xDD}, // Pass 23
+        {0xEE, 0xEE, 0xEE}, // Pass 24
+        {0xFF, 0xFF, 0xFF}, // Pass 25
+        {0x92, 0x49, 0x24}, // Pass 26
+        {0x49, 0x24, 0x92}, // Pass 27
+        {0x24, 0x92, 0x49}, // Pass 28
+        {0x6D, 0xB6, 0xDB}, // Pass 29
+        {0xB6, 0xDB, 0x6D}, // Pass 30
+        {0xDB, 0x6D, 0xB6}, // Pass 31
+    };
+
+    // Passes 1-4: Random data
+    for (int i = 0; i < 4; ++i) {
+        if (delegate.shouldCancel()) return;
+
+        delegate.onStageStarted(stages[i]);
+        write(disk, Method::RANDOM, [&](const Progress& progress) {
+            delegate.onProgress(stages[i], progress);
+        });
+        delegate.onStageCompleted(stages[i]);
+    }
+
+    // Passes 5-31: Fixed patterns
+    for (int i = 0; i < 27; ++i) {
+        if (delegate.shouldCancel()) return;
+
+        int stageIdx = i + 4;
+        delegate.onStageStarted(stages[stageIdx]);
+        write(disk, patterns[i], [&](const Progress& progress) {
+            delegate.onProgress(stages[stageIdx], progress);
+        });
+        delegate.onStageCompleted(stages[stageIdx]);
+    }
+
+    // Passes 32-35: Random data
+    for (int i = 31; i < 35; ++i) {
+        if (delegate.shouldCancel()) return;
+
+        delegate.onStageStarted(stages[i]);
+        write(disk, Method::RANDOM, [&](const Progress& progress) {
+            delegate.onProgress(stages[i], progress);
+        });
+        delegate.onStageCompleted(stages[i]);
+    }
+
+    delegate.onCompleted();
+}
+
+void Gutmann::deleteDisk(Disks::ATADisk& disk, DiskDeleteMethod::Delegate& delegate) { execute(disk, delegate); }
+void Gutmann::deleteDisk(Disks::NVMeDisk& disk, DiskDeleteMethod::Delegate& delegate) { execute(disk, delegate); }
+void Gutmann::deleteDisk(Disks::USBDisk& disk, DiskDeleteMethod::Delegate& delegate) { execute(disk, delegate); }
+
 } // namespace DiskManagement

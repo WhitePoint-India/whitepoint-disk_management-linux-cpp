@@ -25,83 +25,59 @@ const std::vector<Stage>& NIST80088Clear::getStages() const {
     return stages;
 }
 
-void NIST80088Clear::deleteDisk(Disks::ATADisk& disk, DiskDeleteMethod::Delegate& delegate) {
-    auto stages = getStages();
+void NIST80088Clear::execute(Disk& disk, DiskDeleteMethod::Delegate& delegate) {
+    const auto& stages = getStages();
 
-    // Stage 1: Zero overwrite via dd
+    // Stage 1: Zero overwrite
     delegate.onStageStarted(stages[0]);
-
-    unsigned long long totalBytes = disk.getSize();
-    unsigned long long bytesWritten = 0;
-    unsigned long long chunkSize = 1024 * 1024; // 1MB
-
-    while (bytesWritten < totalBytes) {
-        if (delegate.shouldCancel()) { return; }
-
-        unsigned long long remaining = totalBytes - bytesWritten;
-        unsigned long long writeSize = remaining < chunkSize ? remaining : chunkSize;
-
-        // TODO: actual dd if=/dev/zero of=[disk] bs=1M oflag=direct
-        bytesWritten += writeSize;
-
-        delegate.onProgress(stages[0], {bytesWritten, totalBytes});
-    }
-
+    write(disk, Method::x0, [&](const Progress& progress) {
+        delegate.onProgress(stages[0], progress);
+    });
     delegate.onStageCompleted(stages[0]);
+
+    if (delegate.shouldCancel()) return;
 
     // Stage 2: Verification
     delegate.onStageStarted(stages[1]);
-
-    unsigned long long bytesVerified = 0;
-
-    while (bytesVerified < totalBytes) {
-        if (delegate.shouldCancel()) { return; }
-
-        unsigned long long remaining = totalBytes - bytesVerified;
-        unsigned long long readSize = remaining < chunkSize ? remaining : chunkSize;
-
-        // TODO: actual verification read
-        bytesVerified += readSize;
-
-        delegate.onProgress(stages[1], {bytesVerified, totalBytes});
-    }
-
+    auto result = verifyFull(disk, [&](const Progress& progress) {
+        delegate.onProgress(stages[1], progress);
+    });
     delegate.onStageCompleted(stages[1]);
-    delegate.onCompleted();
+
+    if (result.passed) {
+        delegate.onCompleted();
+    } else {
+        delegate.onError("Verification failed: " + std::to_string(result.nonZeroSectors) + " non-zero sectors detected");
+    }
 }
+
+void NIST80088Clear::deleteDisk(Disks::ATADisk& disk, DiskDeleteMethod::Delegate& delegate) { execute(disk, delegate); }
 
 void NIST80088Clear::deleteDisk(Disks::NVMeDisk& disk, DiskDeleteMethod::Delegate& delegate) {
-    auto stages = getStages();
+    const auto& stages = getStages();
 
-    // Stage 1: NVMe format command
+    // Stage 1: NVMe format command (firmware-based, not a write operation)
     delegate.onStageStarted(stages[0]);
-
-    // TODO: actual nvme format [disk] -s 1 -f
+    // TODO: nvme format [disk] -s 1 -f
     delegate.onProgress(stages[0], {disk.getSize(), disk.getSize()});
-
     delegate.onStageCompleted(stages[0]);
+
+    if (delegate.shouldCancel()) return;
 
     // Stage 2: Verification
     delegate.onStageStarted(stages[1]);
-
-    unsigned long long totalBytes = disk.getSize();
-    unsigned long long bytesVerified = 0;
-    unsigned long long chunkSize = 1024 * 1024;
-
-    while (bytesVerified < totalBytes) {
-        if (delegate.shouldCancel()) { return; }
-
-        unsigned long long remaining = totalBytes - bytesVerified;
-        unsigned long long readSize = remaining < chunkSize ? remaining : chunkSize;
-
-        // TODO: actual verification read
-        bytesVerified += readSize;
-
-        delegate.onProgress(stages[1], {bytesVerified, totalBytes});
-    }
-
+    auto result = verifyFull(disk, [&](const Progress& progress) {
+        delegate.onProgress(stages[1], progress);
+    });
     delegate.onStageCompleted(stages[1]);
-    delegate.onCompleted();
+
+    if (result.passed) {
+        delegate.onCompleted();
+    } else {
+        delegate.onError("Verification failed: " + std::to_string(result.nonZeroSectors) + " non-zero sectors detected");
+    }
 }
+
+void NIST80088Clear::deleteDisk(Disks::USBDisk& disk, DiskDeleteMethod::Delegate& delegate) { execute(disk, delegate); }
 
 } // namespace DiskManagement

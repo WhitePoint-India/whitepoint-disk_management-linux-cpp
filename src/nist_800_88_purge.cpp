@@ -27,4 +27,49 @@ const std::vector<Stage>& NIST80088Purge::getStages() const {
     return stages;
 }
 
+void NIST80088Purge::execute(Disk& disk, DiskDeleteMethod::Delegate& delegate) {
+    const auto& stages = getStages();
+
+    // Stage 1: HPA detection and removal
+    delegate.onStageStarted(stages[0]);
+    // TODO: detect and remove Host Protected Area
+    delegate.onProgress(stages[0], {disk.getSize(), disk.getSize()});
+    delegate.onStageCompleted(stages[0]);
+
+    if (delegate.shouldCancel()) return;
+
+    // Stage 2: DCO detection and removal
+    delegate.onStageStarted(stages[1]);
+    // TODO: detect and remove Device Configuration Overlay
+    delegate.onProgress(stages[1], {disk.getSize(), disk.getSize()});
+    delegate.onStageCompleted(stages[1]);
+
+    if (delegate.shouldCancel()) return;
+
+    // Stage 3: Secure erase
+    delegate.onStageStarted(stages[2]);
+    // TODO: ATA SECURITY ERASE UNIT / NVMe Format / NVMe Sanitize
+    delegate.onProgress(stages[2], {disk.getSize(), disk.getSize()});
+    delegate.onStageCompleted(stages[2]);
+
+    if (delegate.shouldCancel()) return;
+
+    // Stage 4: Verification
+    delegate.onStageStarted(stages[3]);
+    auto result = verifyFull(disk, [&](const Progress& progress) {
+        delegate.onProgress(stages[3], progress);
+    });
+    delegate.onStageCompleted(stages[3]);
+
+    if (result.passed) {
+        delegate.onCompleted();
+    } else {
+        delegate.onError("Verification failed: " + std::to_string(result.nonZeroSectors) + " non-zero sectors detected");
+    }
+}
+
+void NIST80088Purge::deleteDisk(Disks::ATADisk& disk, DiskDeleteMethod::Delegate& delegate) { execute(disk, delegate); }
+void NIST80088Purge::deleteDisk(Disks::NVMeDisk& disk, DiskDeleteMethod::Delegate& delegate) { execute(disk, delegate); }
+void NIST80088Purge::deleteDisk(Disks::USBDisk& disk, DiskDeleteMethod::Delegate& delegate) { execute(disk, delegate); }
+
 } // namespace DiskManagement

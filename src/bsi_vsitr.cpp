@@ -30,4 +30,39 @@ const std::vector<Stage>& BSIVSITR::getStages() const {
     return stages;
 }
 
+void BSIVSITR::execute(Disk& disk, DiskDeleteMethod::Delegate& delegate) {
+    const auto& stages = getStages();
+
+    constexpr Method writePasses[] = {
+        Method::x0, Method::xFF,
+        Method::x0, Method::xFF,
+        Method::x0, Method::xFF
+    };
+
+    for (int i = 0; i < 6; ++i) {
+        if (delegate.shouldCancel()) return;
+
+        delegate.onStageStarted(stages[i]);
+        write(disk, writePasses[i], [&](const Progress& progress) {
+            delegate.onProgress(stages[i], progress);
+        });
+        delegate.onStageCompleted(stages[i]);
+    }
+
+    if (delegate.shouldCancel()) return;
+
+    // Pass 7: Write 0xAA
+    static constexpr unsigned char patternAA[] = {0xAA};
+    delegate.onStageStarted(stages[6]);
+    write(disk, patternAA, [&](const Progress& progress) {
+        delegate.onProgress(stages[6], progress);
+    });
+    delegate.onStageCompleted(stages[6]);
+    delegate.onCompleted();
+}
+
+void BSIVSITR::deleteDisk(Disks::ATADisk& disk, DiskDeleteMethod::Delegate& delegate) { execute(disk, delegate); }
+void BSIVSITR::deleteDisk(Disks::NVMeDisk& disk, DiskDeleteMethod::Delegate& delegate) { execute(disk, delegate); }
+void BSIVSITR::deleteDisk(Disks::USBDisk& disk, DiskDeleteMethod::Delegate& delegate) { execute(disk, delegate); }
+
 } // namespace DiskManagement
