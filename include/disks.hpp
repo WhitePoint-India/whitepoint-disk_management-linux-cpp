@@ -1,24 +1,12 @@
 #ifndef DISKS_H
 #define DISKS_H
 
+#include <variant>
 #include <disk.hpp>
-#include <disk-operations.hpp>
 
-namespace DiskManagement {
+namespace Disks {
 
-class Deletable {
-public:
-    template <typename Self, typename DeleteOperation, typename Delegate>
-    void deleteDisk(this Self& self, const DeleteOperation& operation, Delegate& delegate);
-};
-
-template <typename Stage>
-class ATADiskDeleteOperation; // Forward declaration
-
-template <typename Stage>
-class NVMeDiskDeleteOperation; // Forward declaration
-
-class ATADisk : public Disk, public Deletable {
+class ATADisk : public Disk {
 public:
     ATADisk(
         const std::string& serial,
@@ -26,14 +14,14 @@ public:
         const std::string& path,
         const std::string& description,
         unsigned long long size,
-        int sectorSize
+        unsigned int sectorSize
     );
 
-    bool isFrozen();
+    [[nodiscard]] bool isFrozen() const;
     void unfreeze();
 };
 
-class NVMeDisk : public Disk, public Deletable {
+class NVMeDisk : public Disk {
 public:
     NVMeDisk(
         const std::string& serial,
@@ -41,16 +29,8 @@ public:
         const std::string& path,
         const std::string& description,
         unsigned long long size,
-        int sectorSize
+        unsigned int sectorSize
     );
-};
-
-template <typename Delegate>
-class ATADiskDeleteOperation : public AnyDeleteOperation<ATADisk, Delegate> {
-};
-
-template <typename Delegate>
-class NVMeDiskDeleteOperation : public AnyDeleteOperation<NVMeDisk, Delegate> {
 };
 
 class USBDisk : public Disk {
@@ -61,12 +41,12 @@ public:
         const std::string& path,
         const std::string& description,
         unsigned long long size,
-        int sectorSize
+        unsigned int sectorSize
     );
 };
 
-} // namespace DiskManagement
+} // namespace Disks
 
-#include <disks.tpp>
+using DiskVariant = std::variant<Disks::ATADisk, Disks::NVMeDisk, Disks::USBDisk>;
 
 #endif // DISKS_H

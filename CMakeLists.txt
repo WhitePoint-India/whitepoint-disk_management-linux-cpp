@@ -1,6 +1,6 @@
 # DiskManagement-Linux library CMakeLists.txt
 cmake_minimum_required(VERSION 3.11)
-project(disk-management VERSION 2.0.0 LANGUAGES CXX)
+project(disk_management VERSION 2.0.0 LANGUAGES CXX)
 
 # Export compile commands for IDE IntelliSense (VSCode, clangd, etc.)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -37,7 +37,7 @@ target_compile_definitions(lshw PRIVATE
     DATADIR="/usr/share"
 )
 
-target_include_directories(lshw PUBLIC
+target_include_directories(lshw PRIVATE
     ${LSHW_ROOT}/src/core
 )
 
@@ -45,26 +45,46 @@ target_include_directories(lshw PUBLIC
 # Disk Management Library
 # =============================================================================
 
-# Create the main disk-management library
-add_library(disk-management STATIC
+# Create the main disk_management library
+add_library(disk_management STATIC
     src/disk.cpp
-    src/disk-management.cpp
-    src/NIST_800_88_clear.cpp
-    src/disk-operations.cpp
-    src/disk-verifier.cpp
+    src/disks.cpp
+    src/disk_management.cpp
+
+
+    src/operations.cpp
+    src/zero_write.cpp
+    src/random_write.cpp
+    src/random_zero_write.cpp
+    src/nist_800_88_clear.cpp
+    src/nist_800_88_purge.cpp
+    src/dod_5220_28_m.cpp
+    src/dod_5220_22_m.cpp
+    src/afssi_5020.cpp
+    src/navso_p5239_26_mfm.cpp
+    src/navso_p5239_26_rll.cpp
+    src/nsa_legacy.cpp
+    src/nsa_modern.cpp
+    src/bsi_vsitr.cpp
+    src/gutmann.cpp
+    src/secure_erase.cpp
+    src/enhanced_secure_erase.cpp
 )
 
 # Configure include directories
-target_include_directories(disk-management PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>
+target_include_directories(disk_management
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+    PRIVATE
+        ${LSHW_ROOT}/src/core
 )
 
 # Set C++ standard requirement
-target_compile_features(disk-management PUBLIC cxx_std_23)
+target_compile_features(disk_management PUBLIC cxx_std_23)
 
 # Link external dependencies
-target_link_libraries(disk-management
-    PUBLIC
+target_link_libraries(disk_management
+    PRIVATE
         lshw
 )
