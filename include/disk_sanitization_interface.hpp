@@ -7,20 +7,18 @@
 #include <sanitization_stage.hpp>
 
 class DiskSanitizationInterface {
-    public:
-        using Callback = SanitizationCallback;
+private:
+    std::string key_;
+protected:
+    explicit DiskSanitizationInterface(std::string key);
+public:
+    using Callback = SanitizationCallback;
 
-        [[nodiscard]] const std::string& getKey() const noexcept;
+    [[nodiscard]] const std::string& getKey() const noexcept;
 
-        virtual ~DiskSanitizationInterface() noexcept = default;
+    virtual ~DiskSanitizationInterface() noexcept = default;
 
-        virtual void sanitize(DiskVariant& disk, Callback callback) = 0;
-
-    protected:
-        explicit DiskSanitizationInterface(std::string key);
-
-    private:
-        std::string key_;
+    virtual void sanitize(DiskVariant& disk, Callback callback) = 0;
 };
 
 #endif // DISK_SANITIZATION_INTERFACE_HPP

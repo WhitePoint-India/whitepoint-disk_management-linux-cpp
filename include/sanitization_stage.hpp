@@ -14,6 +14,10 @@ public:
     virtual std::string localizedDescription() const = 0;
 };
 
-using SanitizationCallback = std::function<void(const SanitizationStage&)>;
+using SanitizationCallback = std::function<void(
+    const SanitizationStage&,
+    const int index,
+    const int total
+)>;
 
 #endif // SANITIZATION_STAGE_HPP

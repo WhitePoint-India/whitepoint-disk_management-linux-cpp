@@ -16,20 +16,20 @@ void NISTClear::sanitize(DiskVariant& disk, Callback callback) {
 
 void NISTClear::deleteDisk(NVMeDisk& disk, Callback callback) {
     Stage stage1 = Stage::PASS_1;
-    callback(stage1);
+    callback(stage1, Stage::indexOf(stage1), Stage::totalStagesCount);
     Stage stage2 = Stage::PASS_2;
-    callback(stage2);
+    callback(stage2, Stage::indexOf(stage2), Stage::totalStagesCount);
     Stage stage3 = Stage::PASS_3;
-    callback(stage3);
+    callback(stage3, Stage::indexOf(stage3), Stage::totalStagesCount);
 }
 
 void NISTClear::deleteDisk(ATADisk& disk, Callback callback) {
     Stage stage1 = Stage::PASS_1;
-    callback(stage1);
+    callback(stage1, Stage::indexOf(stage1), Stage::totalStagesCount);
     Stage stage2 = Stage::PASS_2;
-    callback(stage2);
+    callback(stage2, Stage::indexOf(stage2), Stage::totalStagesCount);
     Stage stage3 = Stage::PASS_3;
-    callback(stage3);
+    callback(stage3, Stage::indexOf(stage3), Stage::totalStagesCount);
 }
 
 std::string NISTClear::Stage::title() const {
@@ -56,4 +56,8 @@ std::string NISTClear::Stage::localizedTitle() const {
 
 std::string NISTClear::Stage::localizedDescription() const {
     return "A stage for NIST clear sanitization.";
+}
+
+int NISTClear::Stage::indexOf(Stage stage) {
+    return static_cast<int>(stage.value_);
 }

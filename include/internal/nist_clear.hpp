@@ -20,6 +20,11 @@ class NISTClear: public NVMeDiskSanitizationInterface, public ATADiskSanitizatio
 
         class Stage: public SanitizationStage {
         public:
+
+            const static int totalStagesCount = 3;
+
+            static int indexOf(Stage stage);
+            
             enum Value { PASS_1, PASS_2, PASS_3 };
 
             Stage(Value v) : value_(v) {}
