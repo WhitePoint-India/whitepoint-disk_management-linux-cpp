@@ -1,24 +1,19 @@
 
 #include "hw.h"
 #include "main.h"
-#include <disks.hpp>
-#include <zero_write.hpp>
-#include <random_write.hpp>
-#include <random_zero_write.hpp>
-#include <nist_800_88_clear.hpp>
-#include <nist_800_88_purge.hpp>
-#include <dod_5220_28_m.hpp>
-#include <dod_5220_22_m.hpp>
-#include <afssi_5020.hpp>
-#include <navso_p5239_26_mfm.hpp>
-#include <navso_p5239_26_rll.hpp>
-#include <nsa_legacy.hpp>
-#include <nsa_modern.hpp>
-#include <bsi_vsitr.hpp>
-#include <gutmann.hpp>
+
+
+#include <ata_disk.hpp>
+#include <nvme_disk.hpp>
+#include <nist_clear.hpp>
+#include <nist_purge.hpp>
 #include <secure_erase.hpp>
-#include <enhanced_secure_erase.hpp>
+#include <secure_erase_enhanced.hpp>
+
 #include <disk_management>
+#include <filesystem>
+#include <fstream>
+#include <memory>
 
 constexpr unsigned int kDefaultSectorSize = 512;
 
@@ -29,9 +24,25 @@ void status(const char* args) {
     // std::cout << "[lshw]: " << args << std::endl;
 }
 
+namespace DiskManagement {
+
+const std::vector<DiskSanitizationInterface*> methods = {
+    &NISTClear::shared(),
+    &NISTPurge::shared(),
+    &SecureErase::shared(),
+    &EnhancedSecureErase::shared(),
+};
+
 namespace {
 
-void fetchDisksRecursively(hwNode* node, hwNode* parent, std::vector<DiskVariant>& disks) {
+// Extracts the block device name from a logical path (e.g. "/dev/sda" -> "sda")
+std::string extractDeviceName(const std::string& logicalName) {
+    auto pos = logicalName.rfind('/');
+    if (pos == std::string::npos) { return logicalName; }
+    return logicalName.substr(pos + 1);
+}
+
+void fetchDisksRecursively(hwNode* node, hwNode* parent, std::vector<std::unique_ptr<Disk>>& disks) {
 
     if (!node) { return; }
 
@@ -59,10 +70,11 @@ void fetchDisksRecursively(hwNode* node, hwNode* parent, std::vector<DiskVariant
 
         for (std::string& capability: capabilities) {
             if (capability.find("usb") != std::string::npos) {
-                disks.emplace_back(Disks::USBDisk(
+                std::string logicalName = node->getLogicalName();
+                disks.push_back(std::make_unique<Disk>(
                     parent->getSerial(),
                     node->getProduct(),
-                    node->getLogicalName(),
+                    logicalName,
                     node->getDescription(),
                     node->getSize(),
                     sectorSize
@@ -79,10 +91,10 @@ void fetchDisksRecursively(hwNode* node, hwNode* parent, std::vector<DiskVariant
                 if (logicalName.find("/dev/ng") == 0) {
                     return;
                 }
-                disks.emplace_back(Disks::NVMeDisk(
+                disks.push_back(std::make_unique<NVMeDisk>(
                     parent->getSerial(),
                     parent->getProduct(),
-                    node->getLogicalName(),
+                    logicalName,
                     node->getDescription(),
                     node->getSize(),
                     sectorSize
@@ -90,10 +102,11 @@ void fetchDisksRecursively(hwNode* node, hwNode* parent, std::vector<DiskVariant
                 return;
             }
             else if (capability.find("sata") != std::string::npos) {
-                disks.emplace_back(Disks::ATADisk(
+                std::string logicalName = node->getLogicalName();
+                disks.push_back(std::make_unique<ATADisk>(
                     node->getSerial(),
                     node->getProduct(),
-                    node->getLogicalName(),
+                    logicalName,
                     node->getDescription(),
                     node->getSize(),
                     sectorSize
@@ -119,9 +132,7 @@ void fetchDisksRecursively(hwNode* node, hwNode* parent, std::vector<DiskVariant
 
 } // anonymous namespace
 
-namespace DiskManagement {
-
-std::vector<DiskVariant> fetchDisks() {
+std::vector<std::unique_ptr<Disk>> fetchDisks() {
 
     // Create a hwNode to scan the system
     hwNode system("computer");
@@ -130,29 +141,10 @@ std::vector<DiskVariant> fetchDisks() {
     scan_system(system);
 
     // Fetch disks
-    std::vector<DiskVariant> disks;
+    std::vector<std::unique_ptr<Disk>> disks;
     fetchDisksRecursively(&system, nullptr, disks);
 
     return disks;
 }
-
-const std::vector<DiskDeleteMethod*> methods = {
-    &ZeroWrite::shared(),
-    &RandomWrite::shared(),
-    &RandomZeroWrite::shared(),
-    &NIST80088Clear::shared(),
-    &NIST80088Purge::shared(),
-    &DoD522028M::shared(),
-    &DoD522022M::shared(),
-    &AFSSI5020::shared(),
-    &NAVSOP523926MFM::shared(),
-    &NAVSOP523926RLL::shared(),
-    &NSALegacy::shared(),
-    &NSAModern::shared(),
-    &BSIVSITR::shared(),
-    &Gutmann::shared(),
-    &SecureErase::shared(),
-    &EnhancedSecureErase::shared()
-};
 
 } // namespace DiskManagement

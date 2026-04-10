@@ -23,7 +23,7 @@ public:
     );
 
     virtual ~Disk() = default;
-
+    
     [[nodiscard]] const std::string& getSerial() const;
     [[nodiscard]] const std::string& getModel() const;
     [[nodiscard]] const std::string& getPath() const;
@@ -32,5 +32,6 @@ public:
     [[nodiscard]] unsigned int getSectorSize() const;
     [[nodiscard]] unsigned long long getSectorCount() const;
 };
+
 
 #endif // DISK_H

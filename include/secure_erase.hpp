@@ -2,19 +2,25 @@
 #ifndef SECURE_ERASE_HPP
 #define SECURE_ERASE_HPP
 
-#include <operations.hpp>
+#include <ata_disk.hpp>
+#include <nvme_disk.hpp>
+#include <ata_disk_sanitization_interface.hpp>
+#include <nvme_disk_sanitization_interface.hpp>
 
-namespace DiskManagement {
+class SecureErase: public NVMeDiskSanitizationInterface, public ATADiskSanitizationInterface {
+    public:
+        static SecureErase& shared();
 
-class SecureErase: public SingletonMethod<SecureErase> {
-    friend class SingletonMethod<SecureErase>;
-    SecureErase();
-public:
-    const std::string& getTitle() const override;
-    const std::string& getDescription() const override;
-    const std::vector<Stage>& getStages() const override;
+        SecureErase(const SecureErase&) = delete;
+        SecureErase(SecureErase&&) = delete;
+        SecureErase& operator=(const SecureErase&) = delete;
+        SecureErase& operator=(SecureErase&&) = delete;
+
+        void deleteDisk(ATADisk& disk);
+        void deleteDisk(NVMeDisk& disk);
+
+    private:
+        SecureErase();
 };
-
-} // namespace DiskManagement
 
 #endif // SECURE_ERASE_HPP

@@ -47,28 +47,14 @@ target_include_directories(lshw PRIVATE
 
 # Create the main disk_management library
 add_library(disk_management STATIC
+    src/ata_disk.cpp
     src/disk.cpp
-    src/disks.cpp
     src/disk_management.cpp
-
-
-    src/operations.cpp
-    src/zero_write.cpp
-    src/random_write.cpp
-    src/random_zero_write.cpp
-    src/nist_800_88_clear.cpp
-    src/nist_800_88_purge.cpp
-    src/dod_5220_28_m.cpp
-    src/dod_5220_22_m.cpp
-    src/afssi_5020.cpp
-    src/navso_p5239_26_mfm.cpp
-    src/navso_p5239_26_rll.cpp
-    src/nsa_legacy.cpp
-    src/nsa_modern.cpp
-    src/bsi_vsitr.cpp
-    src/gutmann.cpp
+    src/nist_clear.cpp
+    src/nist_purge.cpp
+    src/nvme_disk.cpp
     src/secure_erase.cpp
-    src/enhanced_secure_erase.cpp
+    src/secure_erase_enhanced.cpp
 )
 
 # Configure include directories
