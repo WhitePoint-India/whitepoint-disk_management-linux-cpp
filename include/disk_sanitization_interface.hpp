@@ -11,7 +11,7 @@ class DiskSanitizationInterface {
 
         virtual ~DiskSanitizationInterface() noexcept = default;
 
-        virtual void deleteDisk(DiskVariant& disk) = 0;
+        virtual void sanitize(DiskVariant& disk) = 0;
 
     protected:
         explicit DiskSanitizationInterface(std::string key);

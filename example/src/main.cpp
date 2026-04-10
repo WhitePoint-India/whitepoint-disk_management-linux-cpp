@@ -26,10 +26,10 @@ int main() {
         }, disk);
     }
 
-    DiskSanitizationInterface& selectedMethod = DiskManagement::methods[0];
+    DiskSanitizationInterface& method = DiskManagement::methods[0];
 
     for (auto& disk : disks) {
-        selectedMethod.deleteDisk(disk);
+        method.sanitize(disk);
     }
 
     return 0;

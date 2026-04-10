@@ -14,12 +14,12 @@ class NISTClear: public NVMeDiskSanitizationInterface, public ATADiskSanitizatio
         NISTClear& operator=(const NISTClear&) = delete;
         NISTClear& operator=(NISTClear&&) = delete;
 
-        void deleteDisk(DiskVariant& disk) override;
-        void deleteDisk(ATADisk& disk) override;
-        void deleteDisk(NVMeDisk& disk) override;
+        void sanitize(DiskVariant& disk) override;
 
     private:
         NISTClear();
+        void deleteDisk(ATADisk& disk) override;
+        void deleteDisk(NVMeDisk& disk) override;
 };
 
 #endif // NIST_CLEAR_HPP

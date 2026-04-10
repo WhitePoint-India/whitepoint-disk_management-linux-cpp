@@ -10,7 +10,7 @@ NISTClear& NISTClear::shared() {
     return instance;
 }
 
-void NISTClear::deleteDisk(DiskVariant& disk) {
+void NISTClear::sanitize(DiskVariant& disk) {
     std::visit([this](auto& d) { deleteDisk(d); }, disk);
 }
 

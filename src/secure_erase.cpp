@@ -10,7 +10,7 @@ SecureErase& SecureErase::shared() {
     return instance;
 }
 
-void SecureErase::deleteDisk(DiskVariant& disk) {
+void SecureErase::sanitize(DiskVariant& disk) {
     std::visit([this](auto& d) { deleteDisk(d); }, disk);
 }
 

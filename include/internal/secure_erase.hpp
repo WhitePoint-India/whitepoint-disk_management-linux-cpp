@@ -14,7 +14,7 @@ class SecureErase: public NVMeDiskSanitizationInterface, public ATADiskSanitizat
         SecureErase& operator=(const SecureErase&) = delete;
         SecureErase& operator=(SecureErase&&) = delete;
 
-        void deleteDisk(DiskVariant& disk) override;
+        void sanitize(DiskVariant& disk) override;
         void deleteDisk(ATADisk& disk) override;
         void deleteDisk(NVMeDisk& disk) override;
 

@@ -9,7 +9,7 @@ NISTPurge& NISTPurge::shared() {
     return instance;
 }
 
-void NISTPurge::deleteDisk(DiskVariant& disk) {
+void NISTPurge::sanitize(DiskVariant& disk) {
     std::visit([this](auto& d) { deleteDisk(d); }, disk);
 }
 
