@@ -2,7 +2,7 @@
 #include <ata_disk.hpp>
 #include <ata_disk_sanitization_interface.hpp>
 
-bool ATADisk::isFrozen() {
+bool ATADisk::isFrozen() const {
 
     return true;
 }

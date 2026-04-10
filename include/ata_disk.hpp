@@ -10,7 +10,7 @@ class ATADisk: public Disk {
 public:
     using Disk::Disk;
 
-    [[nodiscard]] bool isFrozen();
+    [[nodiscard]] bool isFrozen() const;
 
     void unfreeze();
 

@@ -9,6 +9,7 @@ class ATADisk;
 
 class ATADiskSanitizationInterface: public virtual DiskSanitizationInterface {
     public:
+        using DiskSanitizationInterface::deleteDisk;
         virtual void deleteDisk(ATADisk& disk) = 0;
 };
 

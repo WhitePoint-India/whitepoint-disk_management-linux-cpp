@@ -1,5 +1,5 @@
-#ifndef DISK_H
-#define DISK_H
+#ifndef DISK_HPP
+#define DISK_HPP
 
 #include <string>
 
@@ -14,24 +14,23 @@ private:
 
 public:
     Disk(
-        const std::string& serial,
-        const std::string& model,
-        const std::string& path,
-        const std::string& description,
+        std::string serial,
+        std::string model,
+        std::string path,
+        std::string description,
         unsigned long long size,
         unsigned int sectorSize
     );
 
-    virtual ~Disk() = default;
-    
-    [[nodiscard]] const std::string& getSerial() const;
-    [[nodiscard]] const std::string& getModel() const;
-    [[nodiscard]] const std::string& getPath() const;
-    [[nodiscard]] const std::string& getDescription() const;
-    [[nodiscard]] unsigned long long getSize() const;
-    [[nodiscard]] unsigned int getSectorSize() const;
-    [[nodiscard]] unsigned long long getSectorCount() const;
+    virtual ~Disk() noexcept = default;
+
+    [[nodiscard]] const std::string& getSerial() const noexcept;
+    [[nodiscard]] const std::string& getModel() const noexcept;
+    [[nodiscard]] const std::string& getPath() const noexcept;
+    [[nodiscard]] const std::string& getDescription() const noexcept;
+    [[nodiscard]] unsigned long long getSize() const noexcept;
+    [[nodiscard]] unsigned int getSectorSize() const noexcept;
+    [[nodiscard]] unsigned long long getSectorCount() const noexcept;
 };
 
-
-#endif // DISK_H
+#endif // DISK_HPP

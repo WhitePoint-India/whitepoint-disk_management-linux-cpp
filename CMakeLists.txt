@@ -64,11 +64,23 @@ target_include_directories(disk_management
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
     PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/internal
         ${LSHW_ROOT}/src/core
 )
 
 # Set C++ standard requirement
 target_compile_features(disk_management PUBLIC cxx_std_23)
+
+# Enable strict compiler warnings
+target_compile_options(disk_management PRIVATE
+    -Wall -Wextra -Wpedantic
+    -Wshadow
+    -Wnon-virtual-dtor
+    -Woverloaded-virtual
+    -Wcast-align
+    -Wconversion
+    -Wsign-conversion
+)
 
 # Link external dependencies
 target_link_libraries(disk_management

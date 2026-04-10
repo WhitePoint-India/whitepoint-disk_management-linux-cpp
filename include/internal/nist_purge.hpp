@@ -1,13 +1,13 @@
 
-#ifndef NIST_800_88_PURGE
-#define NIST_800_88_PURGE
+#ifndef NIST_PURGE_HPP
+#define NIST_PURGE_HPP
 
 #include <ata_disk_sanitization_interface.hpp>
 #include <nvme_disk_sanitization_interface.hpp>
 
 class NISTPurge: public NVMeDiskSanitizationInterface, public ATADiskSanitizationInterface {
     public:
-        static NISTPurge& shared();
+        [[nodiscard]] static NISTPurge& shared();
 
         NISTPurge(const NISTPurge&) = delete;
         NISTPurge(NISTPurge&&) = delete;
@@ -22,4 +22,4 @@ class NISTPurge: public NVMeDiskSanitizationInterface, public ATADiskSanitizatio
         NISTPurge();
 };
 
-#endif // NIST_800_88_PURGE
+#endif // NIST_PURGE_HPP

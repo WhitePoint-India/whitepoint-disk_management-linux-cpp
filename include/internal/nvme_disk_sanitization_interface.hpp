@@ -8,6 +8,7 @@ class NVMeDisk;
 
 class NVMeDiskSanitizationInterface : public virtual DiskSanitizationInterface {
     public:
+        using DiskSanitizationInterface::deleteDisk;
         virtual void deleteDisk(NVMeDisk& disk) = 0;
 };
 

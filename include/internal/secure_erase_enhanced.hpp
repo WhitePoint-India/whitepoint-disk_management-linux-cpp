@@ -7,7 +7,7 @@
 
 class EnhancedSecureErase: public NVMeDiskSanitizationInterface, public ATADiskSanitizationInterface {
     public:
-        static EnhancedSecureErase& shared();
+        [[nodiscard]] static EnhancedSecureErase& shared();
 
         EnhancedSecureErase(const EnhancedSecureErase&) = delete;
         EnhancedSecureErase(EnhancedSecureErase&&) = delete;

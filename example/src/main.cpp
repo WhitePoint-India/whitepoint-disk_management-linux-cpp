@@ -4,7 +4,7 @@
 
 int main() {
 
-    auto disks = DiskManagement::fetchDisks();
+    std::vector<DiskVariant> disks = DiskManagement::fetchDisks();
 
     if (disks.empty()) {
         std::cout << "No disks found." << std::endl;
@@ -13,7 +13,7 @@ int main() {
 
     std::cout << "Found " << disks.size() << " disk(s):\n" << std::endl;
 
-    for (const auto& disk: disks) {
+    for (const DiskVariant& disk: disks) {
         std::visit([](const Disk& d) {
             std::cout << "  Path:         " << d.getPath() << "\n";
             std::cout << "  Model:        " << d.getModel() << "\n";

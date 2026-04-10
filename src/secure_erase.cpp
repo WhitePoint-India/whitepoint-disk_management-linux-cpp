@@ -16,12 +16,12 @@ void SecureErase::deleteDisk(DiskVariant& disk) {
 
 /// @brief
 /// @param disk
-void SecureErase::deleteDisk(NVMeDisk& disk) {
+void SecureErase::deleteDisk(NVMeDisk& /* disk */) {
 
 }
 
-/// @brief 
+/// @brief
 /// @param disk
-void SecureErase::deleteDisk(ATADisk& disk) {
-    
+void SecureErase::deleteDisk(ATADisk& /* disk */) {
+
 }

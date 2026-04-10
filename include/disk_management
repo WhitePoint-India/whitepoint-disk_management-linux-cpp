@@ -3,13 +3,14 @@
 
 #include <vector>
 #include <functional>
+#include <disks.hpp>
 #include <disk_sanitization_interface.hpp>
 
 namespace DiskManagement {
 
     extern const std::vector<std::reference_wrapper<DiskSanitizationInterface>> methods;
 
-    std::vector<DiskVariant> fetchDisks();
+    [[nodiscard]] std::vector<DiskVariant> fetchDisks();
 }
 
 #endif // DISK_MANAGEMENT_H

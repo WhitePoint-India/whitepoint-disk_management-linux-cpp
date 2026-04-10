@@ -14,10 +14,10 @@ void NISTClear::deleteDisk(DiskVariant& disk) {
     std::visit([this](auto& d) { deleteDisk(d); }, disk);
 }
 
-void NISTClear::deleteDisk(NVMeDisk& disk) {
+void NISTClear::deleteDisk(NVMeDisk& /* disk */) {
 
 }
 
-void NISTClear::deleteDisk(ATADisk& disk) {
+void NISTClear::deleteDisk(ATADisk& /* disk */) {
 
 }

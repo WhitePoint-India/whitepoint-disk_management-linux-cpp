@@ -1,13 +1,13 @@
 
-#ifndef NIST_800_88_CLEAR
-#define NIST_800_88_CLEAR
+#ifndef NIST_CLEAR_HPP
+#define NIST_CLEAR_HPP
 
 #include <ata_disk_sanitization_interface.hpp>
 #include <nvme_disk_sanitization_interface.hpp>
 
 class NISTClear: public NVMeDiskSanitizationInterface, public ATADiskSanitizationInterface {
     public:
-        static NISTClear& shared();
+        [[nodiscard]] static NISTClear& shared();
 
         NISTClear(const NISTClear&) = delete;
         NISTClear(NISTClear&&) = delete;
@@ -22,4 +22,4 @@ class NISTClear: public NVMeDiskSanitizationInterface, public ATADiskSanitizatio
         NISTClear();
 };
 
-#endif // NIST_800_88_CLEAR
+#endif // NIST_CLEAR_HPP

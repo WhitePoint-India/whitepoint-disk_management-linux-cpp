@@ -3,23 +3,21 @@
 #define DISK_SANITIZATION_INTERFACE_HPP
 
 #include <string>
-#include <variant>
-
-#include <ata_disk.hpp>
-#include <nvme_disk.hpp>
-
-using DiskVariant = std::variant<ATADisk, NVMeDisk>;
+#include <disks.hpp>
 
 class DiskSanitizationInterface {
     public:
-        std::string key;
+        [[nodiscard]] const std::string& getKey() const noexcept;
 
-        virtual ~DiskSanitizationInterface() = default;
+        virtual ~DiskSanitizationInterface() noexcept = default;
 
         virtual void deleteDisk(DiskVariant& disk) = 0;
 
     protected:
-        DiskSanitizationInterface(std::string key);
+        explicit DiskSanitizationInterface(std::string key);
+
+    private:
+        std::string key_;
 };
 
 #endif // DISK_SANITIZATION_INTERFACE_HPP

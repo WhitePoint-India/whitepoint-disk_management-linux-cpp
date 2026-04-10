@@ -67,7 +67,7 @@ void fetchDisksRecursively(hwNode* node, hwNode* parent, std::vector<DiskVariant
         std::string sectorSizeValue = node->getConfig("logicalsectorsize");
         unsigned int sectorSize = sectorSizeValue.empty() ? kDefaultSectorSize : static_cast<unsigned int>(std::stoi(sectorSizeValue));
 
-        for (std::string& capability: capabilities) {
+        for (const std::string& capability: capabilities) {
             if (capability.find("usb") != std::string::npos) {
                 return; // USB disks not yet supported as a variant type
             }
