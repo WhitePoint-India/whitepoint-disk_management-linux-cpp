@@ -1,16 +1,15 @@
 #ifndef DISK_MANAGEMENT_H
 #define DISK_MANAGEMENT_H
 
-#include <memory>
 #include <vector>
-#include <disk.hpp>
+#include <functional>
 #include <disk_sanitization_interface.hpp>
 
 namespace DiskManagement {
 
-    extern const std::vector<DiskSanitizationInterface*> methods;
+    extern const std::vector<std::reference_wrapper<DiskSanitizationInterface>> methods;
 
-    std::vector<std::unique_ptr<Disk>> fetchDisks();
+    std::vector<DiskVariant> fetchDisks();
 }
 
 #endif // DISK_MANAGEMENT_H

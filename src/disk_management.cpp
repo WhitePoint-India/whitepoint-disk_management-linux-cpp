@@ -13,7 +13,6 @@
 #include <disk_management>
 #include <filesystem>
 #include <fstream>
-#include <memory>
 
 constexpr unsigned int kDefaultSectorSize = 512;
 
@@ -26,11 +25,11 @@ void status(const char* args) {
 
 namespace DiskManagement {
 
-const std::vector<DiskSanitizationInterface*> methods = {
-    &NISTClear::shared(),
-    &NISTPurge::shared(),
-    &SecureErase::shared(),
-    &EnhancedSecureErase::shared(),
+const std::vector<std::reference_wrapper<DiskSanitizationInterface>> methods = {
+    NISTClear::shared(),
+    NISTPurge::shared(),
+    SecureErase::shared(),
+    EnhancedSecureErase::shared(),
 };
 
 namespace {
@@ -42,7 +41,7 @@ std::string extractDeviceName(const std::string& logicalName) {
     return logicalName.substr(pos + 1);
 }
 
-void fetchDisksRecursively(hwNode* node, hwNode* parent, std::vector<std::unique_ptr<Disk>>& disks) {
+void fetchDisksRecursively(hwNode* node, hwNode* parent, std::vector<DiskVariant>& disks) {
 
     if (!node) { return; }
 
@@ -70,16 +69,7 @@ void fetchDisksRecursively(hwNode* node, hwNode* parent, std::vector<std::unique
 
         for (std::string& capability: capabilities) {
             if (capability.find("usb") != std::string::npos) {
-                std::string logicalName = node->getLogicalName();
-                disks.push_back(std::make_unique<Disk>(
-                    parent->getSerial(),
-                    node->getProduct(),
-                    logicalName,
-                    node->getDescription(),
-                    node->getSize(),
-                    sectorSize
-                ));
-                return;
+                return; // USB disks not yet supported as a variant type
             }
             else if (capability.find("nvme") != std::string::npos) {
                 std::string logicalName = node->getLogicalName();
@@ -91,7 +81,7 @@ void fetchDisksRecursively(hwNode* node, hwNode* parent, std::vector<std::unique
                 if (logicalName.find("/dev/ng") == 0) {
                     return;
                 }
-                disks.push_back(std::make_unique<NVMeDisk>(
+                disks.emplace_back(NVMeDisk(
                     parent->getSerial(),
                     parent->getProduct(),
                     logicalName,
@@ -103,7 +93,7 @@ void fetchDisksRecursively(hwNode* node, hwNode* parent, std::vector<std::unique
             }
             else if (capability.find("sata") != std::string::npos) {
                 std::string logicalName = node->getLogicalName();
-                disks.push_back(std::make_unique<ATADisk>(
+                disks.emplace_back(ATADisk(
                     node->getSerial(),
                     node->getProduct(),
                     logicalName,
@@ -132,7 +122,7 @@ void fetchDisksRecursively(hwNode* node, hwNode* parent, std::vector<std::unique
 
 } // anonymous namespace
 
-std::vector<std::unique_ptr<Disk>> fetchDisks() {
+std::vector<DiskVariant> fetchDisks() {
 
     // Create a hwNode to scan the system
     hwNode system("computer");
@@ -141,7 +131,7 @@ std::vector<std::unique_ptr<Disk>> fetchDisks() {
     scan_system(system);
 
     // Fetch disks
-    std::vector<std::unique_ptr<Disk>> disks;
+    std::vector<DiskVariant> disks;
     fetchDisksRecursively(&system, nullptr, disks);
 
     return disks;

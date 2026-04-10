@@ -2,8 +2,6 @@
 #ifndef NIST_800_88_CLEAR
 #define NIST_800_88_CLEAR
 
-#include <ata_disk.hpp>
-#include <nvme_disk.hpp>
 #include <ata_disk_sanitization_interface.hpp>
 #include <nvme_disk_sanitization_interface.hpp>
 
@@ -16,8 +14,9 @@ class NISTClear: public NVMeDiskSanitizationInterface, public ATADiskSanitizatio
         NISTClear& operator=(const NISTClear&) = delete;
         NISTClear& operator=(NISTClear&&) = delete;
 
-        void deleteDisk(ATADisk& disk);
-        void deleteDisk(NVMeDisk& disk);
+        void deleteDisk(DiskVariant& disk) override;
+        void deleteDisk(ATADisk& disk) override;
+        void deleteDisk(NVMeDisk& disk) override;
 
     private:
         NISTClear();

@@ -50,6 +50,7 @@ add_library(disk_management STATIC
     src/ata_disk.cpp
     src/disk.cpp
     src/disk_management.cpp
+    src/disk_sanitization_interface.cpp
     src/nist_clear.cpp
     src/nist_purge.cpp
     src/nvme_disk.cpp

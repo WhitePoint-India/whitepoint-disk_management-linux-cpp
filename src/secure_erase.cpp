@@ -1,12 +1,17 @@
 
 #include <secure_erase.hpp>
 
-SecureErase::SecureErase()
-    : DiskSanitizationInterface("secure_erase", "Secure Erase") {}
+SecureErase::SecureErase() : DiskSanitizationInterface("SECURE_ERASE") {
+
+}
 
 SecureErase& SecureErase::shared() {
     static SecureErase instance;
     return instance;
+}
+
+void SecureErase::deleteDisk(DiskVariant& disk) {
+    std::visit([this](auto& d) { deleteDisk(d); }, disk);
 }
 
 /// @brief

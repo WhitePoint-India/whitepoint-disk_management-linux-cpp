@@ -1,12 +1,17 @@
 
 #include <nist_clear.hpp>
 
-NISTClear::NISTClear()
-    : DiskSanitizationInterface("nist_800_88_clear", "NIST 800-88 Clear") {}
+NISTClear::NISTClear() : DiskSanitizationInterface("NIST_800_88_CLEAR") {
+    
+}
 
 NISTClear& NISTClear::shared() {
     static NISTClear instance;
     return instance;
+}
+
+void NISTClear::deleteDisk(DiskVariant& disk) {
+    std::visit([this](auto& d) { deleteDisk(d); }, disk);
 }
 
 void NISTClear::deleteDisk(NVMeDisk& disk) {

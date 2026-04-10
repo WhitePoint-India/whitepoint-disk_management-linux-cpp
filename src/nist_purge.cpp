@@ -2,12 +2,15 @@
 
 #include <nist_purge.hpp>
 
-NISTPurge::NISTPurge()
-    : DiskSanitizationInterface("nist_800_88_purge", "NIST 800-88 Purge") {}
+NISTPurge::NISTPurge(): DiskSanitizationInterface("NIST_800_88_PURGE") {}
 
 NISTPurge& NISTPurge::shared() {
     static NISTPurge instance;
     return instance;
+}
+
+void NISTPurge::deleteDisk(DiskVariant& disk) {
+    std::visit([this](auto& d) { deleteDisk(d); }, disk);
 }
 
 /// @brief NIST 800 88 description for disk sanitization of NVMeDisks using NVMe CLI commands

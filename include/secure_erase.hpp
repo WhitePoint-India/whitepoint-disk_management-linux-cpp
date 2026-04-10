@@ -2,8 +2,6 @@
 #ifndef SECURE_ERASE_HPP
 #define SECURE_ERASE_HPP
 
-#include <ata_disk.hpp>
-#include <nvme_disk.hpp>
 #include <ata_disk_sanitization_interface.hpp>
 #include <nvme_disk_sanitization_interface.hpp>
 
@@ -16,8 +14,9 @@ class SecureErase: public NVMeDiskSanitizationInterface, public ATADiskSanitizat
         SecureErase& operator=(const SecureErase&) = delete;
         SecureErase& operator=(SecureErase&&) = delete;
 
-        void deleteDisk(ATADisk& disk);
-        void deleteDisk(NVMeDisk& disk);
+        void deleteDisk(DiskVariant& disk) override;
+        void deleteDisk(ATADisk& disk) override;
+        void deleteDisk(NVMeDisk& disk) override;
 
     private:
         SecureErase();
