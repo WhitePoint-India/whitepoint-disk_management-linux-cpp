@@ -2,8 +2,10 @@
 #include <iostream>
 #include <disk_management>
 
-int main() {
+#include <sanitization_stage.hpp>
 
+
+int main() {
     std::vector<DiskVariant> disks = DiskManagement::fetchDisks();
 
     if (disks.empty()) {
@@ -29,8 +31,14 @@ int main() {
     DiskSanitizationInterface& method = DiskManagement::methods[0];
 
     for (auto& disk : disks) {
-        method.sanitize(disk);
+        method.sanitize(disk, [](const SanitizationStage& stage) {
+            std::cout << "[" << stage.title() << "] " << stage.description() << std::endl;
+        });
     }
-
+    
     return 0;
 }
+
+
+
+    

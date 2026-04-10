@@ -14,7 +14,7 @@ public:
     using DiskSanitizationInterface::sanitize;
 
 protected:
-    virtual void deleteDisk(NVMeDisk& disk) = 0;
+    virtual void deleteDisk(NVMeDisk& disk, Callback callback) = 0;
 };
 
 #endif // NVME_DISK_SANITIZATION_INTERFACE_HPP

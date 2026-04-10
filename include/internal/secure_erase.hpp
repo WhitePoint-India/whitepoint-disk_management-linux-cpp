@@ -14,12 +14,12 @@ class SecureErase: public NVMeDiskSanitizationInterface, public ATADiskSanitizat
         SecureErase& operator=(const SecureErase&) = delete;
         SecureErase& operator=(SecureErase&&) = delete;
 
-        void sanitize(DiskVariant& disk) override;
-        void deleteDisk(ATADisk& disk) override;
-        void deleteDisk(NVMeDisk& disk) override;
+        void sanitize(DiskVariant& disk, Callback callback) override;
 
     private:
         SecureErase();
+        void deleteDisk(ATADisk& disk, Callback callback) override;
+        void deleteDisk(NVMeDisk& disk, Callback callback) override;
 };
 
 #endif // SECURE_ERASE_HPP

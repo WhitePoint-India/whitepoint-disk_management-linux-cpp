@@ -13,13 +13,13 @@ class EnhancedSecureErase: public NVMeDiskSanitizationInterface, public ATADiskS
         EnhancedSecureErase(EnhancedSecureErase&&) = delete;
         EnhancedSecureErase& operator=(const EnhancedSecureErase&) = delete;
         EnhancedSecureErase& operator=(EnhancedSecureErase&&) = delete;
-
-        void sanitize(DiskVariant& disk) override;
-        void deleteDisk(ATADisk& disk) override;
-        void deleteDisk(NVMeDisk& disk) override;
+        
+        void sanitize(DiskVariant& disk, Callback callback) override;
 
     private:
         EnhancedSecureErase();
+        void deleteDisk(ATADisk& disk, Callback callback) override;
+        void deleteDisk(NVMeDisk& disk, Callback callback) override;
 };
 
 #endif // SECURE_ERASE_ENHANCED_HPP

@@ -10,18 +10,20 @@ SecureErase& SecureErase::shared() {
     return instance;
 }
 
-void SecureErase::sanitize(DiskVariant& disk) {
-    std::visit([this](auto& d) { deleteDisk(d); }, disk);
+void SecureErase::sanitize(DiskVariant& disk, Callback callback) {
+    std::visit([this, callback](auto& d) { deleteDisk(d, callback); }, disk);
 }
 
 /// @brief
 /// @param disk
-void SecureErase::deleteDisk(NVMeDisk& /* disk */) {
+/// @param callback
+void SecureErase::deleteDisk(NVMeDisk& /* disk */, Callback /* callback */) {
 
 }
 
 /// @brief
 /// @param disk
-void SecureErase::deleteDisk(ATADisk& /* disk */) {
+/// @param callback
+void SecureErase::deleteDisk(ATADisk& /* disk */, Callback /* callback */) {
 
 }

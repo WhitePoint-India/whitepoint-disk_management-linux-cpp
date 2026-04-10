@@ -3,6 +3,7 @@
 #define ATA_DISK_HPP
 
 #include <disk.hpp>
+#include <sanitization_stage.hpp>
 
 class ATADiskSanitizationInterface;
 
@@ -14,7 +15,7 @@ public:
 
     void unfreeze();
 
-    void sanitize(ATADiskSanitizationInterface &sanitizationInterface);
+    void sanitize(ATADiskSanitizationInterface &sanitizationInterface, SanitizationCallback callback);
 };
 
 #endif // ATA_DISK_HPP

@@ -11,6 +11,6 @@ void ATADisk::unfreeze() {
 
 }
 
-void ATADisk::sanitize(ATADiskSanitizationInterface &sanitizationInterface) {
-    sanitizationInterface.deleteDisk(*this);
+void ATADisk::sanitize(ATADiskSanitizationInterface &sanitizationInterface, SanitizationCallback callback) {
+    sanitizationInterface.deleteDisk(*this, callback);
 }

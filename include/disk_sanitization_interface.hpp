@@ -4,14 +4,17 @@
 
 #include <string>
 #include <disks.hpp>
+#include <sanitization_stage.hpp>
 
 class DiskSanitizationInterface {
     public:
+        using Callback = SanitizationCallback;
+
         [[nodiscard]] const std::string& getKey() const noexcept;
 
         virtual ~DiskSanitizationInterface() noexcept = default;
 
-        virtual void sanitize(DiskVariant& disk) = 0;
+        virtual void sanitize(DiskVariant& disk, Callback callback) = 0;
 
     protected:
         explicit DiskSanitizationInterface(std::string key);

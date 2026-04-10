@@ -10,14 +10,14 @@ EnhancedSecureErase& EnhancedSecureErase::shared() {
     return instance;
 }
 
-void EnhancedSecureErase::sanitize(DiskVariant& disk) {
-    std::visit([this](auto& d) { deleteDisk(d); }, disk);
+void EnhancedSecureErase::sanitize(DiskVariant& disk, Callback callback) {
+    std::visit([this, callback](auto& d) { deleteDisk(d, callback); }, disk);
 }
 
-void EnhancedSecureErase::deleteDisk(NVMeDisk& disk) {
+void EnhancedSecureErase::deleteDisk(NVMeDisk& /* disk */, Callback /* callback */) {
     // Implement enhanced secure erase for NVMe disks
 }
 
-void EnhancedSecureErase::deleteDisk(ATADisk& disk) {
+void EnhancedSecureErase::deleteDisk(ATADisk& /* disk */, Callback /* callback */) {
     // Implement enhanced secure erase for ATA disks
 }

@@ -14,12 +14,12 @@ class NISTPurge: public NVMeDiskSanitizationInterface, public ATADiskSanitizatio
         NISTPurge& operator=(const NISTPurge&) = delete;
         NISTPurge& operator=(NISTPurge&&) = delete;
 
-        void sanitize(DiskVariant& disk) override;
+        void sanitize(DiskVariant& disk, Callback callback) override;
 
     private:
         NISTPurge();
-        void deleteDisk(ATADisk& disk) override;
-        void deleteDisk(NVMeDisk& disk) override;
+        void deleteDisk(ATADisk& disk, Callback callback) override;
+        void deleteDisk(NVMeDisk& disk, Callback callback) override;
 };
 
 #endif // NIST_PURGE_HPP

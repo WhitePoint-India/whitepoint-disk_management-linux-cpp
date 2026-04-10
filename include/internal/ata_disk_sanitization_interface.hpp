@@ -15,7 +15,7 @@ public:
     using DiskSanitizationInterface::sanitize;
 
 protected:
-    virtual void deleteDisk(ATADisk& disk) = 0;
+    virtual void deleteDisk(ATADisk& disk, Callback callback) = 0;
 };
 
 #endif // ATA_DISK_SANITIZATION_INTERFACE_HPP
