@@ -1,7 +1,5 @@
 
 #include <ata_disk.hpp>
-#include <sanitization_callback.hpp>
-#include <ata_disk_sanitization_interface.hpp>
 
 bool ATADisk::isFrozen() const {
 
@@ -12,6 +10,10 @@ void ATADisk::unfreeze() {
 
 }
 
-void ATADisk::sanitize(ATADiskSanitizationInterface &sanitizationInterface, SanitizationCallback callback) {
-    sanitizationInterface.deleteDisk(*this, callback);
+void ATADisk::secureEraseUnit(bool /*enhanced*/) {
+
+}
+
+void ATADisk::writeBlock(uint64_t /*sectorOffset*/, const void* /*data*/, std::size_t /*dataSize*/) {
+
 }

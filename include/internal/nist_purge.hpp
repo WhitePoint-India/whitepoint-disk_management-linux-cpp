@@ -2,10 +2,10 @@
 #ifndef NIST_PURGE_HPP
 #define NIST_PURGE_HPP
 
-#include <ata_disk_sanitization_interface.hpp>
-#include <nvme_disk_sanitization_interface.hpp>
+#include <disk_sanitization_interface.hpp>
+#include <sanitization_method_registry.hpp>
 
-class NISTPurge: public NVMeDiskSanitizationInterface, public ATADiskSanitizationInterface {
+class NISTPurge: public DiskSanitizationInterface, private AutoRegisterMethod<NISTPurge> {
     public:
         [[nodiscard]] static NISTPurge& shared();
 
@@ -14,12 +14,10 @@ class NISTPurge: public NVMeDiskSanitizationInterface, public ATADiskSanitizatio
         NISTPurge& operator=(const NISTPurge&) = delete;
         NISTPurge& operator=(NISTPurge&&) = delete;
 
-        void sanitize(DiskVariant& disk, Callback callback) override;
+        void sanitize(Disk& disk, Callback callback) override;
 
     private:
         NISTPurge();
-        void deleteDisk(ATADisk& disk, Callback callback) override;
-        void deleteDisk(NVMeDisk& disk, Callback callback) override;
 };
 
 #endif // NIST_PURGE_HPP

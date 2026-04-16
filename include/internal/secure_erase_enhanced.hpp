@@ -2,10 +2,10 @@
 #ifndef SECURE_ERASE_ENHANCED_HPP
 #define SECURE_ERASE_ENHANCED_HPP
 
-#include <ata_disk_sanitization_interface.hpp>
-#include <nvme_disk_sanitization_interface.hpp>
+#include <disk_sanitization_interface.hpp>
+#include <sanitization_method_registry.hpp>
 
-class EnhancedSecureErase: public NVMeDiskSanitizationInterface, public ATADiskSanitizationInterface {
+class EnhancedSecureErase: public DiskSanitizationInterface, private AutoRegisterMethod<EnhancedSecureErase> {
     public:
         [[nodiscard]] static EnhancedSecureErase& shared();
 
@@ -13,13 +13,11 @@ class EnhancedSecureErase: public NVMeDiskSanitizationInterface, public ATADiskS
         EnhancedSecureErase(EnhancedSecureErase&&) = delete;
         EnhancedSecureErase& operator=(const EnhancedSecureErase&) = delete;
         EnhancedSecureErase& operator=(EnhancedSecureErase&&) = delete;
-        
-        void sanitize(DiskVariant& disk, Callback callback) override;
+
+        void sanitize(Disk& disk, Callback callback) override;
 
     private:
         EnhancedSecureErase();
-        void deleteDisk(ATADisk& disk, Callback callback) override;
-        void deleteDisk(NVMeDisk& disk, Callback callback) override;
 };
 
 #endif // SECURE_ERASE_ENHANCED_HPP

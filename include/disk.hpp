@@ -29,8 +29,8 @@ public:
     [[nodiscard]] const std::string& getPath() const noexcept;
     [[nodiscard]] const std::string& getDescription() const noexcept;
     [[nodiscard]] unsigned long long getSize() const noexcept;
-    [[nodiscard]] unsigned int getSectorSize() const noexcept;
-    [[nodiscard]] unsigned long long getSectorCount() const noexcept;
+    [[nodiscard]] virtual unsigned int getSectorSize() const noexcept;
+    [[nodiscard]] virtual unsigned long long getSectorCount() const noexcept;
 };
 
 #endif // DISK_HPP

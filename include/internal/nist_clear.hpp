@@ -2,11 +2,11 @@
 #ifndef NIST_CLEAR_HPP
 #define NIST_CLEAR_HPP
 
-#include <sanitization_stage.hpp>
-#include <ata_disk_sanitization_interface.hpp>
-#include <nvme_disk_sanitization_interface.hpp>
+#include <localizable_sanitization_stage.hpp>
+#include <disk_sanitization_interface.hpp>
+#include <sanitization_method_registry.hpp>
 
-class NISTClear: public NVMeDiskSanitizationInterface, public ATADiskSanitizationInterface {
+class NISTClear: public DiskSanitizationInterface, private AutoRegisterMethod<NISTClear> {
     public:
 
         [[nodiscard]] static NISTClear& shared();
@@ -16,15 +16,15 @@ class NISTClear: public NVMeDiskSanitizationInterface, public ATADiskSanitizatio
         NISTClear& operator=(const NISTClear&) = delete;
         NISTClear& operator=(NISTClear&&) = delete;
 
-        void sanitize(DiskVariant& disk, Callback callback) override;
+        void sanitize(Disk& disk, Callback callback) override;
 
-        class Stage: public SanitizationStage {
+        class Stage: public LocalizableSanitizationStage {
         public:
 
             const static int totalStagesCount = 3;
 
             static int indexOf(Stage stage);
-            
+
             enum Value { PASS_1, PASS_2, PASS_3 };
 
             Stage(Value v) : value_(v) {}
@@ -44,8 +44,6 @@ class NISTClear: public NVMeDiskSanitizationInterface, public ATADiskSanitizatio
 
     private:
         NISTClear();
-        void deleteDisk(ATADisk& disk, Callback callback) override;
-        void deleteDisk(NVMeDisk& disk, Callback callback) override;
 };
 
 #endif // NIST_CLEAR_HPP

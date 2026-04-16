@@ -2,15 +2,19 @@
 #define DISK_MANAGEMENT_H
 
 #include <vector>
+#include <memory>
 #include <functional>
-#include <disks.hpp>
+#include <disk.hpp>
 #include <disk_sanitization_interface.hpp>
+#include <sanitization_method_registry.hpp>
+#include <hardware_detector.hpp>
 
 namespace DiskManagement {
 
-    extern const std::vector<std::reference_wrapper<DiskSanitizationInterface>> methods;
+    [[nodiscard]] const std::vector<std::reference_wrapper<DiskSanitizationInterface>>& methods();
 
-    [[nodiscard]] std::vector<DiskVariant> fetchDisks();
+    [[nodiscard]] std::vector<std::unique_ptr<Disk>> fetchDisks();
+    [[nodiscard]] std::vector<std::unique_ptr<Disk>> fetchDisks(HardwareDetector& detector);
 }
 
 #endif // DISK_MANAGEMENT_H

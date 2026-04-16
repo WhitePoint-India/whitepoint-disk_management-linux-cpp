@@ -3,14 +3,10 @@
 #define DISK_SANITIZATION_INTERFACE_HPP
 
 #include <string>
-#include <disks.hpp>
-#include <sanitization_stage.hpp>
+#include <disk.hpp>
+#include <sanitization_callback.hpp>
 
 class DiskSanitizationInterface {
-private:
-    std::string key_;
-protected:
-    explicit DiskSanitizationInterface(std::string key);
 public:
     using Callback = SanitizationCallback;
 
@@ -18,7 +14,13 @@ public:
 
     virtual ~DiskSanitizationInterface() noexcept = default;
 
-    virtual void sanitize(DiskVariant& disk, Callback callback) = 0;
+    virtual void sanitize(Disk& disk, Callback callback) = 0;
+
+protected:
+    explicit DiskSanitizationInterface(std::string key);
+
+private:
+    std::string key_;
 };
 
 #endif // DISK_SANITIZATION_INTERFACE_HPP

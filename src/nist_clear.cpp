@@ -1,7 +1,10 @@
 
 #include <nist_clear.hpp>
+#include <block_writable.hpp>
 
-NISTClear::NISTClear() : DiskSanitizationInterface("NIST_800_88_CLEAR") {
+#include <stdexcept>
+
+NISTClear::NISTClear() : DiskSanitizationInterface("NIST_800_88_CLEAR"), AutoRegisterMethod(*this) {
 
 }
 
@@ -10,24 +13,16 @@ NISTClear& NISTClear::shared() {
     return instance;
 }
 
-void NISTClear::sanitize(DiskVariant& disk, Callback callback) {
-    std::visit([this, callback](auto& d) { deleteDisk(d, callback); }, disk);
-}
+void NISTClear::sanitize(Disk& disk, Callback callback) {
+    auto* writable = dynamic_cast<BlockWritable*>(&disk);
+    if (!writable) {
+        throw std::invalid_argument("NIST Clear requires a block-writable disk");
+    }
 
-void NISTClear::deleteDisk(NVMeDisk& disk, Callback callback) {
     Stage stage1 = Stage::PASS_1;
     callback(SanitizationProgress(stage1, Stage::indexOf(stage1), Stage::totalStagesCount, 0.0));
     Stage stage2 = Stage::PASS_2;
-    callback(SanitizationProgress(stage2, Stage::indexOf(stage2), Stage::totalStagesCount, 0.0));
-    Stage stage3 = Stage::PASS_3;
-    callback(SanitizationProgress(stage3, Stage::indexOf(stage3), Stage::totalStagesCount, 0.0));
-}
-
-void NISTClear::deleteDisk(ATADisk& disk, Callback callback) {
-    Stage stage1 = Stage::PASS_1;
-    callback(SanitizationProgress(stage1, Stage::indexOf(stage1), Stage::totalStagesCount, 0.0));
-    Stage stage2 = Stage::PASS_2;
-    for (double i=0; i < 1; i=i+0.01) {
+    for (double i = 0; i < 1; i = i + 0.01) {
         callback(SanitizationProgress(stage2, Stage::indexOf(stage2), Stage::totalStagesCount, i));
     }
     Stage stage3 = Stage::PASS_3;

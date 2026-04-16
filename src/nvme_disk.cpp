@@ -1,7 +1,14 @@
 
 #include <nvme_disk.hpp>
-#include <nvme_disk_sanitization_interface.hpp>
 
-void NVMeDisk::sanitize(NVMeDiskSanitizationInterface &sanitizationInterface, SanitizationCallback callback) {
-    sanitizationInterface.deleteDisk(*this, callback);
+void NVMeDisk::writeBlock(uint64_t /*sectorOffset*/, const void* /*data*/, std::size_t /*dataSize*/) {
+
+}
+
+void NVMeDisk::nvmeSanitize(int /*sanitizeAction*/) {
+
+}
+
+void NVMeDisk::nvmeFormatNVM() {
+
 }

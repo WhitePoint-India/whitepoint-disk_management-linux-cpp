@@ -1,27 +1,20 @@
 
 #include <nist_purge.hpp>
+#include <block_writable.hpp>
 
-NISTPurge::NISTPurge(): DiskSanitizationInterface("NIST_800_88_PURGE") {}
+#include <stdexcept>
+
+NISTPurge::NISTPurge(): DiskSanitizationInterface("NIST_800_88_PURGE"), AutoRegisterMethod(*this) {}
 
 NISTPurge& NISTPurge::shared() {
     static NISTPurge instance;
     return instance;
 }
 
-void NISTPurge::sanitize(DiskVariant& disk, Callback callback) {
-    std::visit([this, callback](auto& d) { deleteDisk(d, callback); }, disk);
-}
-
-/// @brief NIST 800 88 description for disk sanitization of NVMeDisks using NVMe CLI commands
-/// @param disk
-/// @param callback
-void NISTPurge::deleteDisk(NVMeDisk& /* disk */, Callback /* callback */) {
-
-}
-
-/// @brief NIST 800 88 description for disk sanitization of ATADisks using ATA commands
-/// @param disk
-/// @param callback
-void NISTPurge::deleteDisk(ATADisk& /* disk */, Callback /* callback */) {
-
+void NISTPurge::sanitize(Disk& disk, Callback callback) {
+    auto* writable = dynamic_cast<BlockWritable*>(&disk);
+    if (!writable) {
+        throw std::invalid_argument("NIST Purge requires a block-writable disk");
+    }
+    // TODO: Implement NIST 800-88 Purge sanitization
 }
