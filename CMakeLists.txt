@@ -55,6 +55,7 @@ add_library(disk_management STATIC
     src/nist_purge.cpp
     src/nvme_disk.cpp
     src/secure_erase.cpp
+    src/sanitization_progress.cpp
     src/secure_erase_enhanced.cpp
 )
 

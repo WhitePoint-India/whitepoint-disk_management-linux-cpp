@@ -3,7 +3,6 @@
 #define SANITIZATION_STAGE_HPP
 
 #include <string>
-#include <functional>
 
 class SanitizationStage {
 public:
@@ -13,11 +12,5 @@ public:
     virtual std::string localizedTitle() const = 0;
     virtual std::string localizedDescription() const = 0;
 };
-
-using SanitizationCallback = std::function<void(
-    const SanitizationStage&,
-    const int index,
-    const int total
-)>;
 
 #endif // SANITIZATION_STAGE_HPP

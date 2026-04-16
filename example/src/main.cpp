@@ -29,8 +29,8 @@ int main() {
     DiskSanitizationInterface& method = DiskManagement::methods[0];
 
     for (auto& disk : disks) {
-        method.sanitize(disk, [](const SanitizationStage& stage, const int index, const int total) {
-            std::cout << "[" << (index + 1) << "/" << total << " " << stage.title() << "] " << stage.description() << std::endl;
+        method.sanitize(disk, [](const SanitizationProgress progress) {
+            std::cout << "[" << (progress.currentIndex() + 1) << "/" << progress.totalStageCount() << " " << progress.getStage().title() << "] " << progress.fractionCompleted() * 100 << "% - " << progress.getStage().description() << std::endl;
         });
     }
     

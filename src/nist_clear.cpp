@@ -16,20 +16,22 @@ void NISTClear::sanitize(DiskVariant& disk, Callback callback) {
 
 void NISTClear::deleteDisk(NVMeDisk& disk, Callback callback) {
     Stage stage1 = Stage::PASS_1;
-    callback(stage1, Stage::indexOf(stage1), Stage::totalStagesCount);
+    callback(SanitizationProgress(stage1, Stage::indexOf(stage1), Stage::totalStagesCount, 0.0));
     Stage stage2 = Stage::PASS_2;
-    callback(stage2, Stage::indexOf(stage2), Stage::totalStagesCount);
+    callback(SanitizationProgress(stage2, Stage::indexOf(stage2), Stage::totalStagesCount, 0.0));
     Stage stage3 = Stage::PASS_3;
-    callback(stage3, Stage::indexOf(stage3), Stage::totalStagesCount);
+    callback(SanitizationProgress(stage3, Stage::indexOf(stage3), Stage::totalStagesCount, 0.0));
 }
 
 void NISTClear::deleteDisk(ATADisk& disk, Callback callback) {
     Stage stage1 = Stage::PASS_1;
-    callback(stage1, Stage::indexOf(stage1), Stage::totalStagesCount);
+    callback(SanitizationProgress(stage1, Stage::indexOf(stage1), Stage::totalStagesCount, 0.0));
     Stage stage2 = Stage::PASS_2;
-    callback(stage2, Stage::indexOf(stage2), Stage::totalStagesCount);
+    for (double i=0; i < 1; i=i+0.01) {
+        callback(SanitizationProgress(stage2, Stage::indexOf(stage2), Stage::totalStagesCount, i));
+    }
     Stage stage3 = Stage::PASS_3;
-    callback(stage3, Stage::indexOf(stage3), Stage::totalStagesCount);
+    callback(SanitizationProgress(stage3, Stage::indexOf(stage3), Stage::totalStagesCount, 0.0));
 }
 
 std::string NISTClear::Stage::title() const {

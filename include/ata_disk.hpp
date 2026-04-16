@@ -3,7 +3,7 @@
 #define ATA_DISK_HPP
 
 #include <disk.hpp>
-#include <sanitization_stage.hpp>
+#include <sanitization_callback.hpp>
 
 class ATADiskSanitizationInterface;
 
