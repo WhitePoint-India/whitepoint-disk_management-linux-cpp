@@ -17,7 +17,7 @@ public:
         SanitizationStage& stage,
         int index,
         int total,
-        double partialProgress
+        double partialProgress = 1
     );
     [[nodiscard]] double fractionCompleted() const;
     [[nodiscard]] double percentageCompleted() const;

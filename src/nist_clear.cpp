@@ -20,13 +20,13 @@ void NISTClear::sanitize(Disk& disk, Callback callback) {
     }
 
     Stage stage1 = Stage::PASS_1;
-    callback(SanitizationProgress(stage1, Stage::indexOf(stage1), Stage::totalStagesCount, 0.0));
+    callback(SanitizationProgress(stage1, Stage::indexOf(stage1), Stage::totalStagesCount));
     Stage stage2 = Stage::PASS_2;
-    for (double i = 0; i < 1; i = i + 0.01) {
+    for (double i = 0.01; i <= 1; i = i + 0.01) {
         callback(SanitizationProgress(stage2, Stage::indexOf(stage2), Stage::totalStagesCount, i));
     }
     Stage stage3 = Stage::PASS_3;
-    callback(SanitizationProgress(stage3, Stage::indexOf(stage3), Stage::totalStagesCount, 0.0));
+    callback(SanitizationProgress(stage3, Stage::indexOf(stage3), Stage::totalStagesCount));
 }
 
 std::string NISTClear::Stage::title() const {
