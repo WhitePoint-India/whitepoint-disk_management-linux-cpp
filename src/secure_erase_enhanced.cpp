@@ -1,9 +1,8 @@
 
-#include <secure_erase_enhanced.hpp>
-#include <ata_secure_erasable.hpp>
-#include <nvme_sanitizable.hpp>
-
 #include <stdexcept>
+#include <nvme_sanitizable.hpp>
+#include <ata_secure_erasable.hpp>
+#include <secure_erase_enhanced.hpp>
 
 EnhancedSecureErase::EnhancedSecureErase() : DiskSanitizationInterface("SECURE_ERASE_ENHANCED"), AutoRegisterMethod(*this) {
 
@@ -21,7 +20,10 @@ void EnhancedSecureErase::sanitize(Disk& disk, Callback callback) {
             callback(SanitizationProgress(stage, Stage::indexOf(stage), Stage::totalStagesCount, fractionCompleted));
         });
     } else if (auto* nvme = dynamic_cast<NVMeSanitizable*>(&disk)) {
-        nvme->nvmeSanitize(0);
+        nvme->sanitize(NVMeSanitizable::Action::CryptoErase, [callback](const double fractionCompleted) {
+            Stage stage = Stage::ERASE;
+            callback(SanitizationProgress(stage, Stage::indexOf(stage), Stage::totalStagesCount, fractionCompleted));
+        });
     } else {
         throw std::invalid_argument("Enhanced Secure Erase is not supported for this disk type");
     }

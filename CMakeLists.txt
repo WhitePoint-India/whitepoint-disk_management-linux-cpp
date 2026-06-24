@@ -145,3 +145,8 @@ target_link_libraries(disk_management
         lshw
         libnvme
 )
+
+# Ensure libnvme is built and its headers installed before compiling our
+# sources (nvme_disk.cpp includes <libnvme.h>). Linking alone only orders the
+# link step, not compilation.
+add_dependencies(disk_management libnvme_ext)

@@ -1,7 +1,5 @@
-
-#include <disk.hpp>
-
 #include <utility>
+#include <disk.hpp>
 
 Disk::Disk(
     std::string serial,

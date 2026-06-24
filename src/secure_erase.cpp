@@ -21,7 +21,10 @@ void SecureErase::sanitize(Disk& disk, Callback callback) {
             callback(SanitizationProgress(stage, Stage::indexOf(stage), Stage::totalStagesCount, fractionCompleted));
         });
     } else if (auto* nvme = dynamic_cast<NVMeSanitizable*>(&disk)) {
-        nvme->nvmeSanitize(0);
+        nvme->sanitize(NVMeSanitizable::Action::BlockErase, [callback](const double fractionCompleted) {
+            Stage stage = Stage::ERASE;
+            callback(SanitizationProgress(stage, Stage::indexOf(stage), Stage::totalStagesCount, fractionCompleted));
+        });
     } else {
         throw std::invalid_argument("Secure Erase is not supported for this disk type");
     }
