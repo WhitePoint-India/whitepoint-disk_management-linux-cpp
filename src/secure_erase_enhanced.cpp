@@ -15,6 +15,9 @@ EnhancedSecureErase& EnhancedSecureErase::shared() {
 }
 
 void EnhancedSecureErase::sanitize(Disk& disk, Callback callback) {
+    Stage stage = Stage::ERASE;
+    callback(SanitizationProgress(stage, Stage::indexOf(stage), Stage::totalStagesCount, 0.0));
+
     if (auto* ata = dynamic_cast<ATASecureErasable*>(&disk)) {
         ata->secureEraseEnhanced();
     } else if (auto* nvme = dynamic_cast<NVMeSanitizable*>(&disk)) {
@@ -22,5 +25,32 @@ void EnhancedSecureErase::sanitize(Disk& disk, Callback callback) {
     } else {
         throw std::invalid_argument("Enhanced Secure Erase is not supported for this disk type");
     }
-    // TODO: Implement progress reporting via callback
+
+    callback(SanitizationProgress(stage, Stage::indexOf(stage), Stage::totalStagesCount, 1.0));
+}
+
+std::string EnhancedSecureErase::Stage::title() const {
+    switch (value_) {
+        case ERASE: return "Enhanced Secure Erase";
+        default: return "Unknown Stage";
+    }
+}
+
+std::string EnhancedSecureErase::Stage::description() const {
+    switch (value_) {
+        case ERASE: return "Issuing ATA SECURITY ERASE UNIT command in enhanced mode.";
+        default: return "Unknown stage for enhanced secure erase.";
+    }
+}
+
+std::string EnhancedSecureErase::Stage::localizedTitle() const {
+    return "Enhanced Secure Erase Stage";
+}
+
+std::string EnhancedSecureErase::Stage::localizedDescription() const {
+    return "A stage for ATA enhanced secure erase.";
+}
+
+int EnhancedSecureErase::Stage::indexOf(Stage stage) {
+    return static_cast<int>(stage.value_);
 }
