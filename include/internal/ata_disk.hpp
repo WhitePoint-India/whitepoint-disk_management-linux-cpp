@@ -16,8 +16,8 @@ public:
 
     [[nodiscard]] bool isFrozen() const override;
     void unfreeze() override;
-    void secureErase() override;
-    void secureEraseEnhanced() override;
+    void secureErase(Callback callback) override;
+    void secureEraseEnhanced(Callback callback) override;
     void writeBlock(uint64_t sectorOffset, const void* data, std::size_t dataSize) override;
 
     [[nodiscard]] unsigned long long getSectorCount() const noexcept override { return Disk::getSectorCount(); }

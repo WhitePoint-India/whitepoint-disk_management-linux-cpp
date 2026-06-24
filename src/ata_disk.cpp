@@ -262,15 +262,19 @@ void ATADisk::writeBlock(uint64_t /*sectorOffset*/, const void* /*data*/, std::s
 
 }
 
-void ATADisk::secureErase() {
+void ATADisk::secureErase(Callback callback) {
+    callback(0.0);
     performSecureErase(getPath(), /*enhanced=*/false);
+    callback(1.0);
 }
 
-void ATADisk::secureEraseEnhanced() {
+void ATADisk::secureEraseEnhanced(Callback callback) {
     if (!supportsEnhancedErase()) {
         throw std::runtime_error("Enhanced Secure Erase is not supported for this disk");
     }
+    callback(0.0);
     performSecureErase(getPath(), /*enhanced=*/true);
+    callback(1.0);
 }
 
 bool ATADisk::supportsEnhancedErase() const {

@@ -1,9 +1,9 @@
 
+#include <stdexcept>
 #include <secure_erase.hpp>
 #include <ata_secure_erasable.hpp>
 #include <nvme_sanitizable.hpp>
 
-#include <stdexcept>
 
 SecureErase::SecureErase() : DiskSanitizationInterface("SECURE_ERASE"), AutoRegisterMethod(*this) {
 
@@ -15,18 +15,16 @@ SecureErase& SecureErase::shared() {
 }
 
 void SecureErase::sanitize(Disk& disk, Callback callback) {
-    Stage stage = Stage::ERASE;
-    callback(SanitizationProgress(stage, Stage::indexOf(stage), Stage::totalStagesCount, 0.0));
-
     if (auto* ata = dynamic_cast<ATASecureErasable*>(&disk)) {
-        ata->secureErase();
+        ata->secureErase([callback](const double fractionCompleted) {
+            Stage stage = Stage::ERASE;
+            callback(SanitizationProgress(stage, Stage::indexOf(stage), Stage::totalStagesCount, fractionCompleted));
+        });
     } else if (auto* nvme = dynamic_cast<NVMeSanitizable*>(&disk)) {
         nvme->nvmeSanitize(0);
     } else {
         throw std::invalid_argument("Secure Erase is not supported for this disk type");
     }
-
-    callback(SanitizationProgress(stage, Stage::indexOf(stage), Stage::totalStagesCount, 1.0));
 }
 
 std::string SecureErase::Stage::title() const {

@@ -15,18 +15,16 @@ EnhancedSecureErase& EnhancedSecureErase::shared() {
 }
 
 void EnhancedSecureErase::sanitize(Disk& disk, Callback callback) {
-    Stage stage = Stage::ERASE;
-    callback(SanitizationProgress(stage, Stage::indexOf(stage), Stage::totalStagesCount, 0.0));
-
     if (auto* ata = dynamic_cast<ATASecureErasable*>(&disk)) {
-        ata->secureEraseEnhanced();
+        ata->secureEraseEnhanced([callback](const double fractionCompleted) {
+            Stage stage = Stage::ERASE;
+            callback(SanitizationProgress(stage, Stage::indexOf(stage), Stage::totalStagesCount, fractionCompleted));
+        });
     } else if (auto* nvme = dynamic_cast<NVMeSanitizable*>(&disk)) {
         nvme->nvmeSanitize(0);
     } else {
         throw std::invalid_argument("Enhanced Secure Erase is not supported for this disk type");
     }
-
-    callback(SanitizationProgress(stage, Stage::indexOf(stage), Stage::totalStagesCount, 1.0));
 }
 
 std::string EnhancedSecureErase::Stage::title() const {
