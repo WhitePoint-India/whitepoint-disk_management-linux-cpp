@@ -42,6 +42,60 @@ target_include_directories(lshw PRIVATE
 )
 
 # =============================================================================
+# libnvme External Dependency (Git Submodule, built via Meson)
+# =============================================================================
+#
+# libnvme uses Meson (not CMake) and generates config/version headers at
+# configure time, so it cannot be globbed into a target like lshw. Instead we
+# build it as a static archive via ExternalProject_Add and import the result.
+# All optional deps (OpenSSL, json-c, dbus, keyutils, liburing) are disabled so
+# the archive is self-contained for in-band sanitize/format use.
+
+include(ExternalProject)
+
+set(LIBNVME_SRC     ${CMAKE_CURRENT_SOURCE_DIR}/external/libnvme)
+set(LIBNVME_INSTALL ${CMAKE_CURRENT_BINARY_DIR}/libnvme-install)
+set(LIBNVME_STATIC  ${LIBNVME_INSTALL}/lib/libnvme.a)
+set(LIBNVME_INCLUDE ${LIBNVME_INSTALL}/include)
+
+if(NOT EXISTS ${LIBNVME_SRC}/meson.build)
+    message(FATAL_ERROR
+        "libnvme submodule not found. Please run:\n"
+        "  git submodule update --init --recursive")
+endif()
+
+ExternalProject_Add(libnvme_ext
+    SOURCE_DIR ${LIBNVME_SRC}
+    PREFIX     ${CMAKE_CURRENT_BINARY_DIR}/libnvme-build
+    CONFIGURE_COMMAND meson setup <BINARY_DIR> <SOURCE_DIR>
+        --prefix=${LIBNVME_INSTALL}
+        --libdir=lib
+        --default-library=static
+        --buildtype=release
+        -Dpython=disabled
+        -Dopenssl=disabled
+        -Djson-c=disabled
+        -Dlibdbus=disabled
+        -Dkeyutils=disabled
+        -Dliburing=disabled
+        -Dexamples=false
+        -Dtests=false
+        -Ddocs=false
+    BUILD_COMMAND   meson compile -C <BINARY_DIR>
+    INSTALL_COMMAND meson install -C <BINARY_DIR>
+    BUILD_BYPRODUCTS ${LIBNVME_STATIC}
+)
+
+# Wrap the built archive as an imported target. The include dir must exist at
+# configure time, before ExternalProject has run.
+file(MAKE_DIRECTORY ${LIBNVME_INCLUDE})
+add_library(libnvme STATIC IMPORTED GLOBAL)
+set_target_properties(libnvme PROPERTIES
+    IMPORTED_LOCATION             ${LIBNVME_STATIC}
+    INTERFACE_INCLUDE_DIRECTORIES ${LIBNVME_INCLUDE})
+add_dependencies(libnvme libnvme_ext)
+
+# =============================================================================
 # Disk Management Library
 # =============================================================================
 
@@ -89,4 +143,5 @@ target_compile_options(disk_management PRIVATE
 target_link_libraries(disk_management
     PRIVATE
         lshw
+        libnvme
 )

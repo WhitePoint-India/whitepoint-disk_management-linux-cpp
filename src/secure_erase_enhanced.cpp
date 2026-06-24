@@ -16,7 +16,7 @@ EnhancedSecureErase& EnhancedSecureErase::shared() {
 
 void EnhancedSecureErase::sanitize(Disk& disk, Callback callback) {
     if (auto* ata = dynamic_cast<ATASecureErasable*>(&disk)) {
-        ata->secureEraseUnit(true);
+        ata->secureEraseEnhanced();
     } else if (auto* nvme = dynamic_cast<NVMeSanitizable*>(&disk)) {
         nvme->nvmeSanitize(0);
     } else {

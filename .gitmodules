@@ -1,3 +1,6 @@
 [submodule "external/lshw"]
 	path = external/lshw
 	url = https://github.com/lyonel/lshw.git
+[submodule "external/libnvme"]
+	path = external/libnvme
+	url = https://github.com/linux-nvme/libnvme.git

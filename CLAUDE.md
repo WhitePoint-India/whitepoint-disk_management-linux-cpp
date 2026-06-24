@@ -25,7 +25,17 @@ make debug               # Launch lldb debugger
 
 ## Architecture Overview
 
-C++23 disk management library for Linux providing NIST 800-88 compliant disk sanitization. Uses virtual-dispatch polymorphism with capability interfaces for disk operations and a callback-based pattern for progress reporting.
+C++23 disk management library for Linux providing NIST 800-88 compliant disk sanitization. Uses virtual-dispatch polymorphism with capability interfaces for disk operations and a callback-based pattern for progress reporting. Built as a static library (`disk_management`); consumers link it via CMake FetchContent (see `example/CMakeLists.txt` for the GitHub-repo and local-path variants).
+
+### Public API Entry Point
+
+The umbrella header `include/disk_management` (extensionless, included as `#include <disk_management>`) is the entire consumer-facing surface — the `DiskManagement` namespace:
+
+- `DiskManagement::methods()` — registered sanitization methods; forces registration via `ensureMethodsRegistered()` on first call
+- `DiskManagement::fetchDisks()` — enumerate disks using the default `LshwHardwareDetector`
+- `DiskManagement::fetchDisks(HardwareDetector&)` — inject a detector for testing
+
+These are the only functions defined in `src/disk_management.cpp`.
 
 ### Public vs Internal Headers
 

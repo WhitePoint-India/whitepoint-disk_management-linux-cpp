@@ -1,7 +1,6 @@
 
 #include <iostream>
 #include <disk_management>
-#include <sanitization_stage.hpp>
 
 int main() {
     auto disks = DiskManagement::fetchDisks();
@@ -24,12 +23,16 @@ int main() {
         std::cout << std::endl;
     }
 
-    DiskSanitizationInterface& method = DiskManagement::methods()[0];
+    DiskSanitizationInterface& method = DiskManagement::methods()[2];
 
     for (auto& disk : disks) {
-        method.sanitize(*disk, [](const SanitizationProgress progress) {
-            std::cout << "[" << (progress.currentIndex() + 1) << "/" << progress.totalStageCount() << " " << progress.getStage().title() << "] " << progress.fractionCompleted() * 100 << "% - " << progress.getStage().description() << std::endl;
-        });
+        try {
+            method.sanitize(*disk, [](const SanitizationProgress progress) {
+                std::cout << "[" << (progress.currentIndex() + 1) << "/" << progress.totalStageCount() << " " << progress.getStage().title() << "] " << progress.fractionCompleted() * 100 << "% - " << progress.getStage().description() << std::endl;
+            });
+        } catch (const std::exception& e) {
+            std::cerr << "Error occurred while sanitizing disk: " << disk->getPath() <<" - " << e.what() << std::endl;
+        }
     }
 
     return 0;
