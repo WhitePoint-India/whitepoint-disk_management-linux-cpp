@@ -9,6 +9,18 @@
 #include <nist_purge.hpp>
 #include <secure_erase.hpp>
 #include <secure_erase_enhanced.hpp>
+#include <zero_write.hpp>
+#include <random_write.hpp>
+#include <random_zero_write.hpp>
+#include <nsa.hpp>
+#include <bit_toggle.hpp>
+#include <dod_5220_28_m.hpp>
+#include <dod_5220_22_m.hpp>
+#include <afssi_5020.hpp>
+#include <navso_p5239_26_mfm.hpp>
+#include <navso_p5239_26_rll.hpp>
+#include <bsi_vsitr.hpp>
+#include <gutmann.hpp>
 
 namespace {
 
@@ -18,6 +30,18 @@ void ensureMethodsRegistered() {
         NISTPurge::shared();
         SecureErase::shared();
         EnhancedSecureErase::shared();
+        ZeroWrite::shared();
+        RandomWrite::shared();
+        RandomZeroWrite::shared();
+        NSA::shared();
+        BitToggle::shared();
+        DoD522028M::shared();
+        DoD522022M::shared();
+        AFSSI5020::shared();
+        NAVSOP523926MFM::shared();
+        NAVSOP523926RLL::shared();
+        BSIVSITR::shared();
+        Gutmann::shared();
         return true;
     }();
 }

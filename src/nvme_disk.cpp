@@ -12,12 +12,34 @@
 #include <libnvme.h>
 #include <system_error>
 #include <nvme_disk.hpp>
+#include <block_io.hpp>
 
 // libnvme return codes: rc < 0 is a transport error (errno set), rc > 0 is an
 // NVMe status code.
 
-void NVMeDisk::writeBlock(uint64_t /*sectorOffset*/, const void* /*data*/, std::size_t /*dataSize*/) {
+NVMeDisk::~NVMeDisk() noexcept {
+    if (blockFd_ >= 0) {
+        ::close(blockFd_);
+    }
+}
 
+int NVMeDisk::blockFd() {
+    if (blockFd_ < 0) {
+        blockFd_ = BlockIO::openDirect(getPath());
+    }
+    return blockFd_;
+}
+
+void NVMeDisk::writeBlock(uint64_t sectorOffset, const void* data, std::size_t dataSize) {
+    BlockIO::writeAt(blockFd(), sectorOffset * getSectorSize(), data, dataSize);
+}
+
+void NVMeDisk::readBlock(uint64_t sectorOffset, void* data, std::size_t dataSize) {
+    BlockIO::readAt(blockFd(), sectorOffset * getSectorSize(), data, dataSize);
+}
+
+void NVMeDisk::flush() {
+    BlockIO::flush(blockFd_);
 }
 
 void NVMeDisk::sanitize(Action action, Callback callback) {

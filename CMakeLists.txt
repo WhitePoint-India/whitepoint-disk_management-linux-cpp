@@ -102,6 +102,8 @@ add_dependencies(libnvme libnvme_ext)
 # Create the main disk_management library
 add_library(disk_management STATIC
     src/ata_disk.cpp
+    src/block_io.cpp
+    src/block_writable.cpp
     src/disk.cpp
     src/disk_management.cpp
     src/disk_sanitization_interface.cpp
@@ -109,10 +111,25 @@ add_library(disk_management STATIC
     src/nist_clear.cpp
     src/nist_purge.cpp
     src/nvme_disk.cpp
+    src/overwrite_method.cpp
     src/sanitization_method_registry.cpp
     src/secure_erase.cpp
     src/sanitization_progress.cpp
     src/secure_erase_enhanced.cpp
+    src/verifiable.cpp
+    # Overwrite-based sanitization standards
+    src/zero_write.cpp
+    src/random_write.cpp
+    src/random_zero_write.cpp
+    src/nsa.cpp
+    src/bit_toggle.cpp
+    src/dod_5220_28_m.cpp
+    src/dod_5220_22_m.cpp
+    src/afssi_5020.cpp
+    src/navso_p5239_26_mfm.cpp
+    src/navso_p5239_26_rll.cpp
+    src/bsi_vsitr.cpp
+    src/gutmann.cpp
 )
 
 # Configure include directories

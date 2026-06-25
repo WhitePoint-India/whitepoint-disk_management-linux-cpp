@@ -13,6 +13,7 @@
 #include <sys/ioctl.h>
 
 #include <ata_disk.hpp>
+#include <block_io.hpp>
 
 namespace {
 
@@ -258,8 +259,29 @@ void ATADisk::unfreeze() {
 
 }
 
-void ATADisk::writeBlock(uint64_t /*sectorOffset*/, const void* /*data*/, std::size_t /*dataSize*/) {
+ATADisk::~ATADisk() noexcept {
+    if (blockFd_ >= 0) {
+        ::close(blockFd_);
+    }
+}
 
+int ATADisk::blockFd() {
+    if (blockFd_ < 0) {
+        blockFd_ = BlockIO::openDirect(getPath());
+    }
+    return blockFd_;
+}
+
+void ATADisk::writeBlock(uint64_t sectorOffset, const void* data, std::size_t dataSize) {
+    BlockIO::writeAt(blockFd(), sectorOffset * getSectorSize(), data, dataSize);
+}
+
+void ATADisk::readBlock(uint64_t sectorOffset, void* data, std::size_t dataSize) {
+    BlockIO::readAt(blockFd(), sectorOffset * getSectorSize(), data, dataSize);
+}
+
+void ATADisk::flush() {
+    BlockIO::flush(blockFd_);
 }
 
 void ATADisk::secureErase(Callback callback) {
