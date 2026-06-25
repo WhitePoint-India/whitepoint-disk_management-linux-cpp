@@ -4,7 +4,7 @@
 #include <ata_secure_erasable.hpp>
 #include <secure_erase_enhanced.hpp>
 
-EnhancedSecureErase::EnhancedSecureErase() : DiskSanitizationInterface("SECURE_ERASE_ENHANCED"), AutoRegisterMethod(*this) {
+EnhancedSecureErase::EnhancedSecureErase() : DiskSanitizationInterface("ENHANCED_SECURE_ERASE"), AutoRegisterMethod(*this) {
 
 }
 

@@ -1,7 +1,7 @@
 
 #include <bit_toggle.hpp>
 
-BitToggle::BitToggle() : OverwriteMethod("BIT_TOGGLE", {
+BitToggle::BitToggle() : OverwriteMethod("NSA_LEGACY", {
     {"Pass 1 - Writing 0x00", Pass::Kind::Write, std::vector<unsigned char>{0x00}},
     {"Pass 2 - Writing 0xFF", Pass::Kind::Write, std::vector<unsigned char>{0xFF}},
     {"Pass 3 - Writing 0x00", Pass::Kind::Write, std::vector<unsigned char>{0x00}},
