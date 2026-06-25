@@ -21,10 +21,19 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(disk_management)
 
 # Create your executable
-add_executable(example src/main.cpp)
+add_executable(example
+    src/main.cpp
+    src/app.cpp
+    src/console.cpp
+)
 
 # Link the disk_management library
 target_link_libraries(example PRIVATE disk_management)
 
 # Set C++ standard
 target_compile_features(example PRIVATE cxx_std_23)
+
+# Enable warnings for the example as well
+target_compile_options(example PRIVATE
+    -Wall -Wextra -Wpedantic -Wshadow -Wconversion -Wsign-conversion
+)
