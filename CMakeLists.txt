@@ -139,6 +139,9 @@ add_library(disk_management STATIC
     src/secure_erase.cpp
     src/sanitization_progress.cpp
     src/secure_erase_enhanced.cpp
+    src/secure_erase_overwrite_method.cpp
+    src/nist_800.cpp
+    src/nist_800_adv.cpp
     src/verifiable.cpp
 
 

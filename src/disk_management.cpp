@@ -13,6 +13,8 @@ extern void localization_register_disk_management_catalogs();
 // any undefined symbols, so auto-registration alone is not sufficient.
 #include <secure_erase.hpp>
 #include <secure_erase_enhanced.hpp>
+#include <nist_800.hpp>
+#include <nist_800_adv.hpp>
 #include <zero_write.hpp>
 #include <random_write.hpp>
 #include <random_zero_write.hpp>
@@ -32,6 +34,8 @@ void ensureMethodsRegistered() {
     [[maybe_unused]] static bool registered = [] {
         SecureErase::shared();
         EnhancedSecureErase::shared();
+        NIST800::shared();
+        NIST800Adv::shared();
         ZeroWrite::shared();
         RandomWrite::shared();
         RandomZeroWrite::shared();
