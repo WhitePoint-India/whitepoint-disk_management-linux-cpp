@@ -32,10 +32,10 @@ namespace {
 
 void ensureMethodsRegistered() {
     [[maybe_unused]] static bool registered = [] {
-        SecureErase::shared();
-        EnhancedSecureErase::shared();
         NIST800::shared();
         NIST800Adv::shared();
+        SecureErase::shared();
+        EnhancedSecureErase::shared();
         ZeroWrite::shared();
         RandomWrite::shared();
         RandomZeroWrite::shared();
