@@ -29,7 +29,7 @@ C++23 disk management library for Linux providing NIST 800-88 compliant disk san
 
 ### Public API Entry Point
 
-The umbrella header `include/disk_management` (extensionless, included as `#include <disk_management>`) is the entire consumer-facing surface — the `DiskManagement` namespace:
+The umbrella header `include/disk_management/disk_management.hpp` (included as `#include <disk_management/disk_management.hpp>`) is the entire consumer-facing surface — the `DiskManagement` namespace. The bundled localization engine ships alongside it as `#include <disk_management/localization>` (vendored; see "External Dependencies"):
 
 - `DiskManagement::methods()` — registered sanitization methods; forces registration via `ensureMethodsRegistered()` on first call
 - `DiskManagement::fetchDisks()` — enumerate disks using the default `LshwHardwareDetector`
@@ -110,6 +110,7 @@ Methods define their own `Stage` inner classes (e.g., `NISTClear::Stage`) inheri
 ### External Dependencies
 
 - **external/lshw/**: Git submodule, built as static lib. lshw headers are PRIVATE to `disk_management` target (not leaked to consumers). Requires a global `void status(const char*)` stub (defined in `lshw_hardware_detector.cpp`).
+- **Localization engine (vendored)**: a generic `key = value` string engine, vendored directly into this library — header `include/disk_management/localization` (public, `#include <disk_management/localization>`), source `src/localization.cpp`, and the catalog-embedding helper `cmake/EmbedCatalog.cmake`. Stage catalogs (`localization/*.lang`) are embedded at build time via `localization_embed_catalogs()`. No external dependency.
 - **CMake 3.11+**: Build system with FetchContent support.
 
 ## Development Notes

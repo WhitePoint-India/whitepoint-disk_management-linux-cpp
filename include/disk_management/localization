@@ -1,0 +1,64 @@
+#ifndef WHITEPOINT_LOCALIZATION_HPP
+#define WHITEPOINT_LOCALIZATION_HPP
+
+#include <string>
+#include <string_view>
+#include <vector>
+
+// A small, generic string-localization engine.
+//
+// A *catalog* is a flat `key = value` table for a single locale. Libraries
+// register their catalogs (typically embedded at build time, see
+// cmake/EmbedCatalog.cmake) and then build LocalizedString values that render
+// against the active (or an explicit) locale. The engine holds a single global,
+// process-wide locale selection.
+namespace Localization {
+
+// Select the active locale (e.g. "en", "ja"). Unknown codes are accepted;
+// lookups simply fall back to the default locale until a matching catalog is
+// registered.
+void setLocale(std::string code);
+
+// The currently active locale code.
+[[nodiscard]] std::string locale();
+
+// The locale used as a fallback when a key is missing from the active locale.
+// Defaults to "en".
+void setDefaultLocale(std::string code);
+
+// Parse a `key = value` blob and merge it into the table for `localeCode`.
+// Lines are split on the first '='; surrounding whitespace is trimmed; blank
+// lines and lines whose first non-space character is '#' are ignored. Calling
+// this repeatedly for the same locale merges (later keys overwrite earlier).
+void registerCatalog(const std::string& localeCode, std::string_view keyValueText);
+
+// A composable, locale-independent piece of displayable text. It is one of:
+//   * a literal     — rendered verbatim, never translated (hex, device names…);
+//   * a key         — looked up in the active/given locale (then the default
+//                     locale, then the key itself if missing);
+//   * a key + args  — as above, then each `{0}`, `{1}`, … slot in the resolved
+//                     value is filled by rendering the corresponding argument in
+//                     the same locale (so nested/locale-reordered text works).
+//
+// Build one with the static factories, then render it with localized().
+class LocalizedString {
+public:
+    [[nodiscard]] static LocalizedString literal(std::string text);
+    [[nodiscard]] static LocalizedString key(std::string key);
+    [[nodiscard]] static LocalizedString key(std::string key, std::vector<LocalizedString> args);
+
+    // Render against the active locale, or an explicitly given one.
+    [[nodiscard]] std::string localized() const;
+    [[nodiscard]] std::string localized(const std::string& localeCode) const;
+
+private:
+    LocalizedString() = default;
+
+    bool literal_ = false;                 // true: text_ is verbatim; false: text_ is a catalog key
+    std::string text_;                     // literal text, or the lookup key
+    std::vector<LocalizedString> args_;    // fill {0},{1},… in the resolved value
+};
+
+}  // namespace Localization
+
+#endif  // WHITEPOINT_LOCALIZATION_HPP

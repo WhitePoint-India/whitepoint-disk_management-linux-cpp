@@ -20,7 +20,7 @@ namespace DiskManagement {
     // Select the current language that stage title()/description() resolve
     // against (e.g. "en", "ja"). Unknown codes fall back to English. This is a
     // thin facade over the bundled localization engine so consumers need only
-    // <disk_management>.
+    // <disk_management/disk_management.hpp>.
     void setLocale(const std::string& code);
     [[nodiscard]] std::string locale();
 }

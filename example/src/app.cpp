@@ -11,7 +11,7 @@
 #include <string>
 #include <vector>
 
-#include <disk_management>
+#include <disk_management/disk_management.hpp>
 
 namespace app {
 namespace {

@@ -96,29 +96,16 @@ set_target_properties(libnvme PROPERTIES
 add_dependencies(libnvme libnvme_ext)
 
 # =============================================================================
-# Localization Engine (standalone library, fetched via FetchContent)
+# Localization Engine (vendored)
 # =============================================================================
 #
-# A generic `key = value` string-localization engine. The stage translation
-# catalogs (localization/*.lang) are embedded into disk_management at build
-# time via the localization_embed_catalogs() helper this library defines.
-
-include(FetchContent)
-
-# Option 1: fetch the engine from its standalone repository.
-# FetchContent_Declare(
-#     localization
-#     GIT_REPOSITORY https://github.com/WhitePoint-India/whitepoint-localization-cpp.git
-#     GIT_TAG main
-# )
-
-# Option 2: use a local checkout (useful while developing the two together).
-FetchContent_Declare(
-    localization
-    SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../whitepoint-localization-cpp
-)
-
-FetchContent_MakeAvailable(localization)
+# A generic `key = value` string-localization engine, vendored directly into this
+# library: the header is include/disk_management/localization, the source is
+# src/localization.cpp (compiled into disk_management below), and the catalog
+# embedding helper lives in cmake/EmbedCatalog.cmake. The stage translation
+# catalogs (localization/*.lang) are embedded into disk_management at build time
+# via the localization_embed_catalogs() helper it defines.
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/EmbedCatalog.cmake)
 
 # =============================================================================
 # Disk Management Library
@@ -131,6 +118,7 @@ add_library(disk_management STATIC
     src/disk.cpp
     src/disk_management.cpp
     src/disk_sanitization_interface.cpp
+    src/localization.cpp
     src/lshw_hardware_detector.cpp
     src/nvme_disk.cpp
     src/overwrite_method.cpp
@@ -194,12 +182,11 @@ target_compile_options(disk_management PRIVATE
     -Wsign-conversion
 )
 
-# Link external dependencies. localization is PUBLIC because public stage headers
-# (sanitization_stage.hpp) expose Localization::LocalizedString by value, so
-# consumers need its include path. lshw/libnvme stay private (not leaked).
+# Link external dependencies. The localization engine is vendored (compiled from
+# src/localization.cpp into this archive), so there is no separate target to link;
+# its public header ships from this library's own PUBLIC include/ dir. lshw/libnvme
+# stay private (not leaked).
 target_link_libraries(disk_management
-    PUBLIC
-        localization
     PRIVATE
         lshw
         libnvme
