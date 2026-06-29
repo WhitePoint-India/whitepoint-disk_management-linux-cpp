@@ -29,16 +29,15 @@ class EnhancedSecureErase: public DiskSanitizationInterface, private AutoRegiste
 
             enum Value { ERASE };
 
-            Stage(Value v) : value_(v) {}
+            Stage(Value v)
+                : LocalizableSanitizationStage(
+                      Localization::LocalizedString::key("enhanced_secure_erase.erase.title"),
+                      Localization::LocalizedString::key("enhanced_secure_erase.erase.desc")),
+                  value_(v) {}
 
             operator Value() const { return value_; }
 
             explicit operator bool() const = delete;
-
-            std::string title() const override;
-            std::string description() const override;
-            std::string localizedTitle() const override;
-            std::string localizedDescription() const override;
 
         private:
             Value value_;

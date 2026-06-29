@@ -1,0 +1,18 @@
+# Japanese (ja) translation catalog for disk_management sanitization stages.
+# See en.lang for the key scheme. Keys missing here fall back to the default
+# locale (en) at lookup time.
+
+# --- ATA Secure Erase ---
+secure_erase.erase.title = セキュア消去
+secure_erase.erase.desc  = ATA SECURITY ERASE UNIT コマンドを実行中。
+
+# --- ATA Enhanced Secure Erase ---
+enhanced_secure_erase.erase.title = 拡張セキュア消去
+enhanced_secure_erase.erase.desc  = ATA SECURITY ERASE UNIT コマンドを拡張モードで実行中。
+
+# --- Overwrite passes (one parameterized template; {0} = the pattern) ---
+writing.pattern.@.title       = {0}を書き込み中
+writing.pattern.@.description = ディスク全体に{0}を書き込み中。
+writing.pattern.value.zero    = ゼロ
+writing.pattern.value.one     = 0xFF
+writing.pattern.value.random  = ランダムデータ

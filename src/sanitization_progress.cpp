@@ -2,7 +2,7 @@
 #include <sanitization_progress.hpp>
 
 SanitizationProgress::SanitizationProgress(
-    SanitizationStage& stage,
+    LocalizableSanitizationStage& stage,
     int index,
     int total,
     double partialProgress
@@ -19,4 +19,4 @@ int SanitizationProgress::currentIndex() const { return index_; }
 
 int SanitizationProgress::totalStageCount() const { return total_; }
 
-const SanitizationStage& SanitizationProgress::getStage() const { return stage_; }
+const LocalizableSanitizationStage& SanitizationProgress::getStage() const { return stage_; }

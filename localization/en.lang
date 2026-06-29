@@ -1,0 +1,26 @@
+# English (en) translation catalog for disk_management sanitization stages.
+#
+# Format: `key = value`, one per line. Keys are namespaced per method:
+#   <method>.<stage>.title / <method>.<stage>.desc
+# Overwrite-based methods (BlockWritingMethod) key each pass by its Pattern, not
+# by method/position: writing.pattern.<kind>.title / .description. See
+# include/internal/pattern.hpp.
+#
+# This file is embedded into the static library at build time
+# (localization_embed_catalogs in CMakeLists.txt) and drives localizedTitle()/
+# localizedDescription() when the active locale is "en" (the default).
+
+# --- ATA Secure Erase (enum stage) ---
+secure_erase.erase.title = Secure Erase
+secure_erase.erase.desc  = Issuing ATA SECURITY ERASE UNIT command.
+
+# --- ATA Enhanced Secure Erase (enum stage) ---
+enhanced_secure_erase.erase.title = Enhanced Secure Erase
+enhanced_secure_erase.erase.desc  = Issuing ATA SECURITY ERASE UNIT command in enhanced mode.
+
+# --- Overwrite passes (one parameterized template; {0} = the pattern) ---
+writing.pattern.@.title       = Writing {0}
+writing.pattern.@.description = Writing {0} across the disk.
+writing.pattern.value.zero    = zeros
+writing.pattern.value.one     = ones
+writing.pattern.value.random  = random data

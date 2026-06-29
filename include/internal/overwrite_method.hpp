@@ -3,47 +3,25 @@
 #define OVERWRITE_METHOD_HPP
 
 #include <string>
-#include <vector>
-#include <optional>
+#include <utility>
 
-#include <localizable_sanitization_stage.hpp>
 #include <disk_sanitization_interface.hpp>
+#include <block_writing_method.hpp>
 
-// Shared base for every overwrite-based standard. A concrete method just supplies
-// a key and an ordered list of passes; this base runs them via the BlockWritable
-// overwrite engine (and the Verifiable engine for verification passes), mapping
-// each pass to a SanitizationProgress.
-class OverwriteMethod : public DiskSanitizationInterface {
+// Bridges the BlockWritingMethod overwrite engine to DiskSanitizationInterface:
+// it supplies the method key and maps each pass's progress onto a
+// SanitizationProgress. Concrete standards inherit this and declare their passes
+// inline, e.g.
+//   OverwriteMethod("ZERO_FILL", Pass(Pattern::repeat(RepeatingByte::ZERO)))
+class OverwriteMethod : public DiskSanitizationInterface, public BlockWritingMethod {
 public:
-    void sanitize(Disk& disk, Callback callback) override;
-
-    class Stage : public LocalizableSanitizationStage {
-    public:
-        Stage(std::string title, std::string description);
-        std::string title() const override;
-        std::string description() const override;
-        std::string localizedTitle() const override;
-        std::string localizedDescription() const override;
-    private:
-        std::string title_;
-        std::string description_;
-    };
+    void sanitize(Disk& disk, DiskSanitizationInterface::Callback callback) override;
 
 protected:
-    struct Pass {
-        enum class Kind { Write, Verify };
-        std::string label;
-        Kind kind;
-        // Write: nullopt => random data, else the (repeating) pattern to write.
-        // Verify: nullopt => read-back integrity check, else expected pattern.
-        std::optional<std::vector<unsigned char>> pattern;
-        double sampling = 1.0;  // Verify only: 1.0 = full, 0.10 = 10% sample
-    };
-
-    OverwriteMethod(std::string key, std::vector<Pass> passes);
-
-private:
-    std::vector<Pass> passes_;
+    template <typename... Passes>
+    OverwriteMethod(std::string key, Passes&&... passes)
+        : DiskSanitizationInterface(std::move(key)),
+          BlockWritingMethod(std::forward<Passes>(passes)...) {}
 };
 
 #endif // OVERWRITE_METHOD_HPP

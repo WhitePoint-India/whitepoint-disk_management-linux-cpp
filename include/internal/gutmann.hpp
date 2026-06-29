@@ -2,8 +2,6 @@
 #ifndef GUTMANN_HPP
 #define GUTMANN_HPP
 
-#include <vector>
-
 #include <overwrite_method.hpp>
 #include <sanitization_method_registry.hpp>
 
@@ -18,7 +16,6 @@ public:
 
 private:
     Gutmann();
-    static std::vector<Pass> buildPasses();
 };
 
 #endif // GUTMANN_HPP

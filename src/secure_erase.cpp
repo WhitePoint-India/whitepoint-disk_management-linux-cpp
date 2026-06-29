@@ -30,28 +30,6 @@ void SecureErase::sanitize(Disk& disk, Callback callback) {
     }
 }
 
-std::string SecureErase::Stage::title() const {
-    switch (value_) {
-        case ERASE: return "Secure Erase";
-        default: return "Unknown Stage";
-    }
-}
-
-std::string SecureErase::Stage::description() const {
-    switch (value_) {
-        case ERASE: return "Issuing ATA SECURITY ERASE UNIT command.";
-        default: return "Unknown stage for secure erase.";
-    }
-}
-
-std::string SecureErase::Stage::localizedTitle() const {
-    return "Secure Erase Stage";
-}
-
-std::string SecureErase::Stage::localizedDescription() const {
-    return "A stage for ATA secure erase.";
-}
-
 int SecureErase::Stage::indexOf(Stage stage) {
     return static_cast<int>(stage.value_);
 }

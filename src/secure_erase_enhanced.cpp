@@ -29,28 +29,6 @@ void EnhancedSecureErase::sanitize(Disk& disk, Callback callback) {
     }
 }
 
-std::string EnhancedSecureErase::Stage::title() const {
-    switch (value_) {
-        case ERASE: return "Enhanced Secure Erase";
-        default: return "Unknown Stage";
-    }
-}
-
-std::string EnhancedSecureErase::Stage::description() const {
-    switch (value_) {
-        case ERASE: return "Issuing ATA SECURITY ERASE UNIT command in enhanced mode.";
-        default: return "Unknown stage for enhanced secure erase.";
-    }
-}
-
-std::string EnhancedSecureErase::Stage::localizedTitle() const {
-    return "Enhanced Secure Erase Stage";
-}
-
-std::string EnhancedSecureErase::Stage::localizedDescription() const {
-    return "A stage for ATA enhanced secure erase.";
-}
-
 int EnhancedSecureErase::Stage::indexOf(Stage stage) {
     return static_cast<int>(stage.value_);
 }

@@ -96,6 +96,31 @@ set_target_properties(libnvme PROPERTIES
 add_dependencies(libnvme libnvme_ext)
 
 # =============================================================================
+# Localization Engine (standalone library, fetched via FetchContent)
+# =============================================================================
+#
+# A generic `key = value` string-localization engine. The stage translation
+# catalogs (localization/*.lang) are embedded into disk_management at build
+# time via the localization_embed_catalogs() helper this library defines.
+
+include(FetchContent)
+
+# Option 1: fetch the engine from its standalone repository.
+# FetchContent_Declare(
+#     localization
+#     GIT_REPOSITORY https://github.com/WhitePoint-India/whitepoint-localization-cpp.git
+#     GIT_TAG main
+# )
+
+# Option 2: use a local checkout (useful while developing the two together).
+FetchContent_Declare(
+    localization
+    SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../whitepoint-localization-cpp
+)
+
+FetchContent_MakeAvailable(localization)
+
+# =============================================================================
 # Disk Management Library
 # =============================================================================
 
@@ -103,20 +128,30 @@ add_dependencies(libnvme libnvme_ext)
 add_library(disk_management STATIC
     src/ata_disk.cpp
     src/block_io.cpp
-    src/block_writable.cpp
     src/disk.cpp
     src/disk_management.cpp
     src/disk_sanitization_interface.cpp
     src/lshw_hardware_detector.cpp
-    src/nist_clear.cpp
-    src/nist_purge.cpp
     src/nvme_disk.cpp
     src/overwrite_method.cpp
     src/sanitization_method_registry.cpp
+    src/localizable_sanitization_stage.cpp
     src/secure_erase.cpp
     src/sanitization_progress.cpp
     src/secure_erase_enhanced.cpp
     src/verifiable.cpp
+
+
+    src/pattern.cpp
+
+    src/verification_method.cpp
+
+    src/block_writing_method.cpp
+    src/block_writing_method_pass.cpp
+    
+    include/internal/block_writing_method.tpp
+    include/internal/pattern.tpp
+
     # Overwrite-based sanitization standards
     src/zero_write.cpp
     src/random_write.cpp
@@ -156,11 +191,23 @@ target_compile_options(disk_management PRIVATE
     -Wsign-conversion
 )
 
-# Link external dependencies
+# Link external dependencies. localization is PUBLIC because public stage headers
+# (sanitization_stage.hpp) expose Localization::LocalizedString by value, so
+# consumers need its include path. lshw/libnvme stay private (not leaked).
 target_link_libraries(disk_management
+    PUBLIC
+        localization
     PRIVATE
         lshw
         libnvme
+)
+
+# Embed the stage translation catalogs into the archive. This generates a
+# source defining localization_register_disk_management_catalogs(), which the
+# composition root (src/disk_management.cpp) calls to register them.
+localization_embed_catalogs(disk_management
+    en ${CMAKE_CURRENT_SOURCE_DIR}/localization/en.lang
+    ja ${CMAKE_CURRENT_SOURCE_DIR}/localization/ja.lang
 )
 
 # Ensure libnvme is built and its headers installed before compiling our

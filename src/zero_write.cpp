@@ -1,9 +1,9 @@
 
 #include <zero_write.hpp>
 
-ZeroWrite::ZeroWrite() : OverwriteMethod("ZERO_FILL", {
-    {"Writing zeros", Pass::Kind::Write, std::vector<unsigned char>{0x00}},
-}), AutoRegisterMethod(*this) {
+ZeroWrite::ZeroWrite() : OverwriteMethod("ZERO_FILL",
+    Pass(Pattern::repeat(RepeatingByte::ZERO))
+), AutoRegisterMethod(*this) {
 }
 
 ZeroWrite& ZeroWrite::shared() {

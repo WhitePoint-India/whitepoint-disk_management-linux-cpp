@@ -35,10 +35,33 @@ void renderProgress(const std::string& path, const SanitizationProgress& progres
     std::ostringstream out;
     out << "\r  [" << path << "] "
         << "[" << (progress.currentIndex() + 1) << "/" << progress.totalStageCount() << " "
-        << progress.getStage().title() << "] "
+        << progress.getStage().localizedTitle() << "] "
         << std::fixed << std::setprecision(1) << progress.fractionCompleted() * 100.0 << "%"
         << "          ";  // pad to overwrite any longer previous line
     std::cout << out.str() << std::flush;
+}
+
+// Page 0: choose the display language. Sets the current locale that stage
+// title()/description() resolve against. Defaults to English if cancelled.
+void selectLanguage() {
+    struct Language {
+        std::string label;
+        std::string code;
+    };
+    static const std::vector<Language> languages = {
+        {"English", "en"},
+        {"日本語 (Japanese)", "ja"},
+    };
+
+    console::clearScreen();
+    console::header("Select language / 言語を選択");
+    for (std::size_t i = 0; i < languages.size(); ++i) {
+        std::cout << "  " << std::setw(2) << (i + 1) << ". " << languages[i].label << "\n";
+    }
+    std::cout << "\n";
+
+    const auto choice = console::promptIndex(languages.size(), "Language");
+    DiskManagement::setLocale(choice ? languages[*choice].code : "en");
 }
 
 // Page 1: choose a sanitization method. Returns nullptr if cancelled.
@@ -146,6 +169,8 @@ int run() {
         std::cerr << "No sanitization methods are registered." << std::endl;
         return 1;
     }
+
+    selectLanguage();
 
     DiskSanitizationInterface* method = selectMethod();
     if (method == nullptr) {

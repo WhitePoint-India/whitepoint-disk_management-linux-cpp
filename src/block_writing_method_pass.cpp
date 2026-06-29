@@ -1,5 +1,9 @@
 
-#include <block_writable.hpp>
+
+#include <utility>
+#include <optional>
+#include <span>
+#include <block_writing_method.hpp>
 
 #include <stdexcept>
 #include <algorithm>
@@ -47,9 +51,21 @@ void readRandom(int urandomFd, unsigned char* buf, std::size_t size) {
     }
 }
 
-// Shared full-disk overwrite driver used by both public overloads.
-void runOverwrite(BlockWritable& dev, std::span<const unsigned char> pattern, bool random,
-                  const BlockWritable::ProgressCallback& onProgress) {
+}  // namespace
+
+BlockWritingMethod::Pass::Pass(Pattern pattern)
+    : LocalizableSanitizationStage(pattern.title(), pattern.description()),
+      pattern_(std::move(pattern)) {
+
+}
+
+// Write this pass's pattern across the entire disk in sector-aligned chunks,
+// reporting progress per chunk, then flush. For a random pattern the buffer is
+// refreshed from /dev/urandom periodically.
+void BlockWritingMethod::Pass::run(BlockWritable& dev, const Callback& onProgress) const {
+    const std::optional<std::vector<unsigned char>> bytes = pattern_.repeatingBytes();
+    const bool random = !bytes.has_value();
+
     const unsigned int sectorSize = dev.getSectorSize();
     const unsigned long long sectorCount = dev.getSectorCount();
     if (sectorSize == 0 || sectorCount == 0) {
@@ -79,7 +95,7 @@ void runOverwrite(BlockWritable& dev, std::span<const unsigned char> pattern, bo
             }
             readRandom(urandomFd, buf, chunkBytes);
         } else {
-            fillPattern(buf, chunkBytes, pattern);
+            fillPattern(buf, chunkBytes, std::span<const unsigned char>(*bytes));
         }
 
         unsigned long long bytesWritten = 0;
@@ -114,28 +130,4 @@ void runOverwrite(BlockWritable& dev, std::span<const unsigned char> pattern, bo
         ::close(urandomFd);
     }
     free(raw);
-}
-
-}  // namespace
-
-void BlockWritable::overwrite(Fill fill, const ProgressCallback& onProgress) {
-    switch (fill) {
-        case Fill::Zero: {
-            const unsigned char value = 0x00;
-            runOverwrite(*this, std::span<const unsigned char>(&value, 1), false, onProgress);
-            break;
-        }
-        case Fill::Ones: {
-            const unsigned char value = 0xFF;
-            runOverwrite(*this, std::span<const unsigned char>(&value, 1), false, onProgress);
-            break;
-        }
-        case Fill::Random:
-            runOverwrite(*this, {}, true, onProgress);
-            break;
-    }
-}
-
-void BlockWritable::overwrite(std::span<const unsigned char> pattern, const ProgressCallback& onProgress) {
-    runOverwrite(*this, pattern, false, onProgress);
 }

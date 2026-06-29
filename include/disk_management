@@ -4,6 +4,7 @@
 #include <vector>
 #include <memory>
 #include <functional>
+#include <string>
 #include <disk.hpp>
 #include <disk_sanitization_interface.hpp>
 #include <sanitization_method_registry.hpp>
@@ -15,6 +16,13 @@ namespace DiskManagement {
 
     [[nodiscard]] std::vector<std::unique_ptr<Disk>> fetchDisks();
     [[nodiscard]] std::vector<std::unique_ptr<Disk>> fetchDisks(HardwareDetector& detector);
+
+    // Select the current language that stage title()/description() resolve
+    // against (e.g. "en", "ja"). Unknown codes fall back to English. This is a
+    // thin facade over the bundled localization engine so consumers need only
+    // <disk_management>.
+    void setLocale(const std::string& code);
+    [[nodiscard]] std::string locale();
 }
 
 #endif // DISK_MANAGEMENT_H
