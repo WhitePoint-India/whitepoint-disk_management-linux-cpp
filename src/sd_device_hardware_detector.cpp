@@ -54,13 +54,19 @@ std::optional<BusType> detect_bus_type(sd_device *dev, const std::string &devnod
     return std::nullopt;
 }
 
-long long get_total_sectors(sd_device *dev, const std::string &devnode, unsigned int sector_size) {
+// /sys/block/<dev>/size is always expressed in 512-byte units by the kernel
+// (same convention `blockdev --getsz` uses), regardless of the device's
+// actual logical sector size — so convert to bytes here rather than handing
+// back a raw sector count that callers could multiply by the wrong sector
+// size (that previously inflated the reported capacity on 4Kn drives, whose
+// logical_block_size is 4096 rather than 512).
+unsigned long long get_total_bytes(sd_device *dev, const std::string &devnode) {
     const char *sector_val = nullptr;
     if (sd_device_get_sysattr_value(dev, "size", &sector_val) >= 0 && sector_val) {
         char *end = nullptr;
-        long long sectors = strtoll(sector_val, &end, 10);
+        unsigned long long sectors_512 = strtoull(sector_val, &end, 10);
         if (end != sector_val) {
-            return sectors;
+            return sectors_512 * 512ULL;
         }
     }
 
@@ -69,12 +75,9 @@ long long get_total_sectors(sd_device *dev, const std::string &devnode, unsigned
         return 0;
     }
     unsigned long long byte_size = 0;
-    long long sectors = 0;
-    if (ioctl(fd, BLKGETSIZE64, &byte_size) == 0) {
-        sectors = static_cast<long long>(byte_size / sector_size);
-    }
+    ioctl(fd, BLKGETSIZE64, &byte_size);
     close(fd);
-    return sectors;
+    return byte_size;
 }
 
 unsigned int get_sector_size(sd_device *dev) {
@@ -151,15 +154,13 @@ std::vector<std::unique_ptr<Disk>> SDDeviceHardwareDetector::fetchDisks() {
         }
 
         const unsigned int sector_size = get_sector_size(current);
-        const long long total_sectors = get_total_sectors(current, devnode, sector_size);
-        if (total_sectors <= 0) {
+        const unsigned long long size = get_total_bytes(current, devnode);
+        if (size == 0) {
             continue;
         }
 
         const std::string model = model_val ? model_val : "UNKNOWN";
         const std::string serial = serial_val ? serial_val : "UNKNOWN";
-        const unsigned long long size = static_cast<unsigned long long>(total_sectors)
-                                        * static_cast<unsigned long long>(sector_size);
         const std::string description = *bustype == BusType::NVMe ? "NVMe disk" : "ATA Disk";
 
         if (*bustype == BusType::NVMe) {
