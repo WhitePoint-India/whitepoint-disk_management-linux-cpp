@@ -30,6 +30,14 @@ std::string humanSize(unsigned long long bytes) {
     return out.str();
 }
 
+std::string busTypeToString(BusType busType) {
+    switch (busType) {
+        case BusType::NVMe: return "NVMe";
+        case BusType::SATA: return "SATA";
+    }
+    return "Unknown";
+}
+
 // In-place progress line for one disk; the caller prints a newline when done.
 void renderProgress(const std::string& path, const SanitizationProgress& progress) {
     std::ostringstream out;
@@ -71,7 +79,8 @@ DiskSanitizationInterface* selectMethod() {
     console::clearScreen();
     console::header("Select a disk deletion method");
     for (std::size_t i = 0; i < methods.size(); ++i) {
-        std::cout << "  " << std::setw(2) << (i + 1) << ". " << methods[i].get().getKey() << "\n";
+        std::cout << "  " << std::setw(2) << static_cast<unsigned>(methods[i].get().grade())
+                  << ". " << methods[i].get().getKey() << "\n";
     }
     std::cout << "\n";
 
@@ -89,11 +98,15 @@ std::optional<std::vector<Disk*>> selectDisks(const std::vector<std::unique_ptr<
     console::header("Method: " + methodKey + "  -  Select target disk(s)");
     for (std::size_t i = 0; i < disks.size(); ++i) {
         const Disk& disk = *disks[i];
-        std::cout << "  " << std::setw(2) << (i + 1) << ". " << disk.getPath()
-                  << "  |  " << disk.getModel()
-                  << "  |  " << humanSize(disk.getSize()) << "\n";
+        std::cout << "  " << std::setw(2) << (i + 1) << ". " << disk.getPath() << "\n"
+                  << "      Model       : " << disk.getModel() << "\n"
+                  << "      Serial      : " << disk.getSerial() << "\n"
+                  << "      Description : " << disk.getDescription() << "\n"
+                  << "      Bus         : " << busTypeToString(disk.getBusType()) << "\n"
+                  << "      Size        : " << humanSize(disk.getSize()) << "\n"
+                  << "      Sector size : " << disk.getSectorSize() << " bytes\n"
+                  << "      Sectors     : " << disk.getSectorCount() << "\n\n";
     }
-    std::cout << "\n";
 
     const auto choices = console::promptMultiSelect(disks.size());
     if (!choices) {

@@ -5,7 +5,7 @@
 #include <nvme_sanitizable.hpp>
 
 
-SecureErase::SecureErase() : DiskSanitizationInterface("SECURE_ERASE"), AutoRegisterMethod(*this) {
+SecureErase::SecureErase() : DiskSanitizationInterface("SECURE_ERASE", sanitization_grade::secure_erase), AutoRegisterMethod(*this) {
 
 }
 

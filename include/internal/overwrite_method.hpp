@@ -19,8 +19,8 @@ public:
 
 protected:
     template <typename... Passes>
-    OverwriteMethod(std::string key, Passes&&... passes)
-        : DiskSanitizationInterface(std::move(key)),
+    OverwriteMethod(std::string key, sanitization_grade grade, Passes&&... passes)
+        : DiskSanitizationInterface(std::move(key), grade),
           BlockWritingMethod(std::forward<Passes>(passes)...) {}
 };
 

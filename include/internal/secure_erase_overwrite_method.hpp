@@ -20,8 +20,8 @@ public:
 
 protected:
     template <typename... Passes>
-    SecureEraseOverwriteMethod(std::string key, Passes&&... passes)
-        : DiskSanitizationInterface(std::move(key)),
+    SecureEraseOverwriteMethod(std::string key, sanitization_grade grade, Passes&&... passes)
+        : DiskSanitizationInterface(std::move(key), grade),
           BlockWritingMethod(std::forward<Passes>(passes)...) {}
 };
 

@@ -1,7 +1,7 @@
 
 #include <dod_5220_28_m.hpp>
 
-DoD522028M::DoD522028M() : OverwriteMethod("DOD_5220_28_M",
+DoD522028M::DoD522028M() : OverwriteMethod("DOD_5220_28_M", sanitization_grade::dod_5220_28_m,
     Pass(Pattern::repeat(RepeatingByte::ONE)),
     Pass(Pattern::repeat(RepeatingByte::ZERO)),
     Pass(Pattern::random())

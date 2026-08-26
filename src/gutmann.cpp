@@ -3,7 +3,7 @@
 
 // Gutmann 35-pass method: passes 1-4 and 32-35 are random; passes 5-31 are the
 // 27 fixed patterns below.
-Gutmann::Gutmann() : OverwriteMethod("GUTMANN",
+Gutmann::Gutmann() : OverwriteMethod("GUTMANN", sanitization_grade::peter_gutmann,
     Pass(Pattern::random()),
     Pass(Pattern::random()),
     Pass(Pattern::random()),

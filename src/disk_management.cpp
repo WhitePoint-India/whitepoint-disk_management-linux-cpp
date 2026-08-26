@@ -1,6 +1,6 @@
 
 #include <disk_management/disk_management.hpp>
-#include <lshw_hardware_detector.hpp>
+#include <sd_device_hardware_detector.hpp>
 
 #include <disk_management/localization>
 
@@ -79,7 +79,7 @@ std::string locale() {
 }
 
 std::vector<std::unique_ptr<Disk>> fetchDisks() {
-    LshwHardwareDetector detector;
+    SDDeviceHardwareDetector detector;
     return detector.fetchDisks();
 }
 

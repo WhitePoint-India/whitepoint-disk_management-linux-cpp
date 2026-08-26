@@ -1,7 +1,7 @@
 
 #include <bit_toggle.hpp>
 
-BitToggle::BitToggle() : OverwriteMethod("NSA_LEGACY",
+BitToggle::BitToggle() : OverwriteMethod("NSA_LEGACY", sanitization_grade::nsa_legacy,
     Pass(Pattern::repeat(RepeatingByte::ZERO)),
     Pass(Pattern::repeat(RepeatingByte::ONE)),
     Pass(Pattern::repeat(RepeatingByte::ZERO)),

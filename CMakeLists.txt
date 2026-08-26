@@ -2,6 +2,9 @@
 cmake_minimum_required(VERSION 3.11)
 project(disk_management VERSION 2.0.0 LANGUAGES CXX)
 
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(SYSTEMD REQUIRED IMPORTED_TARGET libsystemd)
+
 # Export compile commands for IDE IntelliSense (VSCode, clangd, etc.)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -126,6 +129,7 @@ add_library(disk_management STATIC
     src/localizable_sanitization_stage.cpp
     src/secure_erase.cpp
     src/sanitization_progress.cpp
+    src/sd_device_hardware_detector.cpp
     src/secure_erase_enhanced.cpp
     src/secure_erase_overwrite_method.cpp
     src/nist_800.cpp
@@ -190,6 +194,7 @@ target_link_libraries(disk_management
     PRIVATE
         lshw
         libnvme
+        PkgConfig::SYSTEMD
 )
 
 # Embed the stage translation catalogs into the archive. This generates a

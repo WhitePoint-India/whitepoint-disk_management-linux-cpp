@@ -63,6 +63,7 @@ void fetchDisksRecursively(hwNode* node, hwNode* parent, std::vector<std::unique
                     parent->getProduct(),
                     logicalName,
                     node->getDescription(),
+                    BusType::NVMe,
                     node->getSize(),
                     sectorSize
                 ));
@@ -75,6 +76,7 @@ void fetchDisksRecursively(hwNode* node, hwNode* parent, std::vector<std::unique
                     node->getProduct(),
                     logicalName,
                     node->getDescription(),
+                    BusType::SATA,
                     node->getSize(),
                     sectorSize
                 ));
