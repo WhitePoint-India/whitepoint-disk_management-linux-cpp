@@ -24,3 +24,7 @@ writing.pattern.@.description = Writing {0} across the disk.
 writing.pattern.value.zero    = zeros
 writing.pattern.value.one     = ones
 writing.pattern.value.random  = random data
+
+# --- Verification stage (fixed keys, enum-stage style) ---
+verification.verify.title = Verifying
+verification.verify.desc  = Reading back the disk to verify every sector contains zeros.

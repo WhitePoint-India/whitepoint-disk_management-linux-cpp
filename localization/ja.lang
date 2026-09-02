@@ -16,3 +16,7 @@ writing.pattern.@.description = ディスク全体に{0}を書き込み中。
 writing.pattern.value.zero    = ゼロ
 writing.pattern.value.one     = 0xFF
 writing.pattern.value.random  = ランダムデータ
+
+# --- Verification stage ---
+verification.verify.title = 検証中
+verification.verify.desc  = ディスク全体を読み取り、全セクタがゼロであることを検証中。

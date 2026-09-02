@@ -33,7 +33,7 @@ protected:
     // Reports progress for pass `index` of `total`, at `fraction` within that pass.
     using Callback = std::function<void(const Pass& pass, int index, int total, double fraction)>;
 
-    // Number of passes — used by bridges that prepend their own stages.
+    // Number of passes — used by bridges that add their own stages.
     [[nodiscard]] int passCount() const { return static_cast<int>(passes_.size()); }
 
 private:

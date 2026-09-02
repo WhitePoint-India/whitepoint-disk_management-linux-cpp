@@ -47,8 +47,8 @@ Consumers see only the `Disk` base class (via `std::unique_ptr<Disk>`). Concrete
 
 ```
 Disk (base class, private members with getters)  [public: include/disk.hpp]
-├── ATADisk  (+ BlockWritable + ATASecureErasable) [internal: include/internal/ata_disk.hpp]
-└── NVMeDisk (+ BlockWritable + NVMeSanitizable)   [internal: include/internal/nvme_disk.hpp]
+├── ATADisk  (+ BlockWritable + Verifiable + ATASecureErasable) [internal: include/internal/ata_disk.hpp]
+└── NVMeDisk (+ BlockWritable + Verifiable + NVMeSanitizable)   [internal: include/internal/nvme_disk.hpp]
 ```
 
 ### Capability Interfaces
@@ -56,6 +56,7 @@ Disk (base class, private members with getters)  [public: include/disk.hpp]
 Sanitization methods use `dynamic_cast` to check disk capabilities rather than coupling to concrete types:
 
 - **`BlockWritable`** — sector-level write access (`writeBlock()`, `getSectorCount()`, `getSectorSize()`)
+- **`Verifiable`** — sector-level read-back and pattern verification (`readBlock()`, `verify()`, `verifySampling()`)
 - **`ATASecureErasable`** — ATA secure erase operations (`isFrozen()`, `unfreeze()`, `secureEraseUnit()`)
 - **`NVMeSanitizable`** — NVMe sanitize/format commands (`nvmeSanitize()`, `nvmeFormatNVM()`)
 
@@ -66,11 +67,17 @@ Methods inherit from `DiskSanitizationInterface` (public API: `sanitize(Disk&, C
 Each method is a **Meyers singleton** with deleted copy/move:
 
 ```
-DiskSanitizationInterface (abstract base, virtual sanitize())  [public]
-├── NISTClear           — NIST 800-88 Clear (3-stage)         [internal]
-├── NISTPurge           — NIST 800-88 Purge                   [internal]
-├── SecureErase         — ATA Secure Erase                    [internal]
-└── EnhancedSecureErase — ATA Enhanced Secure Erase           [internal]
+DiskSanitizationInterface (abstract base, virtual sanitize())            [public]
+├── OverwriteMethod (+ BlockWritingMethod engine)                        [internal]
+│   └── ZeroWrite, RandomWrite, RandomZeroWrite, NSA, BitToggle,
+│       DoD522028M, DoD522022M, AFSSI5020, NAVSOP523926MFM,
+│       NAVSOP523926RLL, BSIVSITR, Gutmann
+├── OverwriteVerifyMethod (+ BlockWritingMethod engine, final full-disk
+│   read-back verifying every sector is 0x00; throws on mismatch)        [internal]
+│   ├── NIST800    — zero write + verification
+│   └── NIST800Adv — random write + zero write + verification
+├── SecureErase         — ATA Secure Erase / NVMe sanitize               [internal]
+└── EnhancedSecureErase — ATA Enhanced Secure Erase                      [internal]
 ```
 
 **Static library linker issue**: Because methods auto-register via static initialization, and static libraries drop translation units with no unresolved symbols, `disk_management.cpp` acts as a composition root — it explicitly calls each method's `shared()` to force construction.
@@ -92,7 +99,7 @@ Progress uses a callback (`std::function<void(const SanitizationProgress)>`) ins
 - **`SanitizationStage`** — abstract base with `title()` and `description()`
 - **`LocalizableSanitizationStage`** — extends `SanitizationStage` with `localizedTitle()` and `localizedDescription()`
 
-Methods define their own `Stage` inner classes (e.g., `NISTClear::Stage`) inheriting `LocalizableSanitizationStage` with an enum of stage values.
+Overwrite-based methods report each `BlockWritingMethod::Pass` (a `LocalizableSanitizationStage` keyed by its `Pattern`) as a stage; enum-style methods define their own `Stage` inner classes (e.g., `SecureErase::Stage`) inheriting `LocalizableSanitizationStage`.
 
 ### Hardware Detection
 

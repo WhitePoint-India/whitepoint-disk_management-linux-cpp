@@ -125,21 +125,19 @@ add_library(disk_management STATIC
     src/lshw_hardware_detector.cpp
     src/nvme_disk.cpp
     src/overwrite_method.cpp
+    src/overwrite_verify_method.cpp
     src/sanitization_method_registry.cpp
     src/localizable_sanitization_stage.cpp
     src/secure_erase.cpp
     src/sanitization_progress.cpp
     src/sd_device_hardware_detector.cpp
     src/secure_erase_enhanced.cpp
-    src/secure_erase_overwrite_method.cpp
     src/nist_800.cpp
     src/nist_800_adv.cpp
     src/verifiable.cpp
 
 
     src/pattern.cpp
-
-    src/verification_method.cpp
 
     src/block_writing_method.cpp
     src/block_writing_method_pass.cpp

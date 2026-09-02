@@ -2,10 +2,10 @@
 #ifndef NIST_800_HPP
 #define NIST_800_HPP
 
-#include <secure_erase_overwrite_method.hpp>
+#include <overwrite_verify_method.hpp>
 #include <sanitization_method_registry.hpp>
 
-class NIST800: public SecureEraseOverwriteMethod, private AutoRegisterMethod<NIST800> {
+class NIST800: public OverwriteVerifyMethod, private AutoRegisterMethod<NIST800> {
 public:
     [[nodiscard]] static NIST800& shared();
 
